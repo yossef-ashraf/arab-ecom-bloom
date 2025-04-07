@@ -15,3 +15,27 @@ export interface Product {
 export interface CartItem extends Product {
   quantity: number;
 }
+
+export interface Order {
+  id: string;
+  date: string;
+  status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  total: number;
+  items: CartItem[];
+  shippingAddress: {
+    name: string;
+    street: string;
+    city: string;
+    zipCode: string;
+    phone: string;
+  };
+  paymentMethod: string;
+}
+
+export interface PaymentCard {
+  id: string;
+  cardNumber: string;
+  cardHolder: string;
+  expiryDate: string;
+  isDefault: boolean;
+}
