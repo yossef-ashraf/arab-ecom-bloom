@@ -39,3 +39,48 @@ export interface PaymentCard {
   expiryDate: string;
   isDefault: boolean;
 }
+
+// إضافة واجهات للتوثيق
+export interface ApiEndpoint {
+  name: string;
+  description: string;
+  request: {
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+    body?: any;
+  };
+  response: {
+    status: number;
+    body: any;
+    headers: Record<string, string>;
+  };
+  errorResponses?: Array<{
+    status: number;
+    body: any;
+  }>;
+}
+
+export interface ApiDocumentation {
+  info: {
+    name: string;
+    version: string;
+    description: string;
+  };
+  endpoints: ApiEndpoint[];
+}
+
+export interface PostmanCollection {
+  info: {
+    _postman_id: string;
+    name: string;
+    description: string;
+    schema: string;
+  };
+  item: Array<any>;
+  variable: Array<{
+    key: string;
+    value: string;
+    type: string;
+  }>;
+}
