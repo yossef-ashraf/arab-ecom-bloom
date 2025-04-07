@@ -1,29 +1,32 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 45 35% 98%;
+    --foreground: 222 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 212 100% 25%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 43 74% 49%;
+    --secondary-foreground: 222 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 177 37% 37%;
+    --accent-foreground: 222 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -35,19 +38,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -79,6 +75,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -95,7 +92,46 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html {
+    font-family: 'Tajawal', sans-serif;
+    direction: rtl;
   }
+
+  body {
+    @apply bg-background text-foreground font-tajawal;
+  }
+
+  /* Custom styles for the e-commerce store */
+  .product-card {
+    @apply rounded-md overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg;
+  }
+  
+  .product-image {
+    @apply w-full h-48 object-cover;
+  }
+  
+  .btn-primary {
+    @apply bg-bloom-navy text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-all;
+  }
+  
+  .btn-secondary {
+    @apply bg-bloom-gold text-bloom-navy px-4 py-2 rounded-md hover:bg-opacity-90 transition-all;
+  }
+  
+  .section-title {
+    @apply text-2xl font-bold mb-6 text-bloom-navy border-r-4 border-bloom-gold pr-3;
+  }
+  
+  .arabic-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
+/* RTL overrides for certain components */
+.ltr {
+  direction: ltr;
+}
+
+.rtl {
+  direction: rtl;
 }
