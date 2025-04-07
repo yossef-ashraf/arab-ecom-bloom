@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,15 +20,16 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { register, isLoading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -58,18 +60,16 @@ const Register = () => {
       return;
     }
     
-    setIsLoading(true);
+    const success = await register({
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+    });
     
-    // Simulate API call
-    setTimeout(() => {
-      // This would be replaced with actual registration logic and API call
-      console.log("Registration attempted with:", formData);
-      toast({
-        title: "تم إنشاء الحساب",
-        description: "تم إنشاء حسابك بنجاح، يمكنك تسجيل الدخول الآن",
-      });
-      setIsLoading(false);
-    }, 1500);
+    if (success) {
+      navigate("/");
+    }
   };
   
   const togglePasswordVisibility = () => {
