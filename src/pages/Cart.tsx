@@ -31,19 +31,18 @@ const Cart = () => {
       
       <main className="flex-grow py-12">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold text-bloom-navy mb-8">سلة التسوق</h1>
+          <h1 className="text-3xl font-bold text-blue-900 mb-8">سلة التسوق</h1>
           
           {isEmpty ? (
             <div className="text-center py-16 bg-white rounded-lg shadow-sm">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">سلة التسوق فارغة</h2>
               <p className="text-gray-600 mb-8">لم تقم بإضافة أي منتجات إلى سلة التسوق بعد</p>
-              <Button asChild className="bg-bloom-navy hover:bg-bloom-navy/90">
+              <Button asChild className="bg-blue-900 hover:bg-blue-800">
                 <Link to="/">العودة للتسوق</Link>
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Cart items */}
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                   <div className="p-6 border-b">
@@ -64,31 +63,30 @@ const Cart = () => {
                     return (
                       <div key={item.id} className="p-6 border-b hover:bg-gray-50 transition-colors">
                         <div className="flex items-center">
-                          {/* Product image and info */}
                           <div className="flex flex-1">
                             <div className="w-20 h-20 rounded-md overflow-hidden ml-4">
                               <img
                                 src={item.image}
-                                alt={item.name}
+                                alt={item.title}
                                 className="w-full h-full object-cover"
                               />
                             </div>
                             <div>
                               <Link
                                 to={`/product/${item.id}`}
-                                className="font-medium text-bloom-navy hover:text-bloom-gold transition-colors"
+                                className="font-medium text-blue-900 hover:text-amber-600 transition-colors"
                               >
-                                {item.name}
+                                {item.title}
                               </Link>
                               <p className="text-sm text-gray-500">{item.category}</p>
+                              <p className="text-sm text-gray-500">بقلم: {item.author}</p>
                             </div>
                           </div>
                           
-                          {/* Quantity */}
                           <div className="flex items-center ml-4">
                             <button
                               onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                              className="p-1 text-gray-500 hover:text-bloom-navy"
+                              className="p-1 text-gray-500 hover:text-blue-900"
                               disabled={item.quantity <= 1}
                             >
                               <Minus size={16} />
@@ -96,27 +94,23 @@ const Cart = () => {
                             <span className="mx-2 w-8 text-center">{item.quantity}</span>
                             <button
                               onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                              className="p-1 text-gray-500 hover:text-bloom-navy"
-                              disabled={item.quantity >= item.stock}
+                              className="p-1 text-gray-500 hover:text-blue-900"
                             >
                               <Plus size={16} />
                             </button>
                           </div>
                           
-                          {/* Price */}
                           <div className="w-24 text-right ml-4">
-                            <p className="font-medium">{itemPrice} ر.س</p>
+                            <p className="font-medium">{itemPrice} جنيه</p>
                             {item.discount && (
-                              <p className="text-sm text-gray-500 line-through">{item.price} ر.س</p>
+                              <p className="text-sm text-gray-500 line-through">{item.price} جنيه</p>
                             )}
                           </div>
                           
-                          {/* Total */}
                           <div className="w-24 text-right ml-4">
-                            <p className="font-medium">{itemTotal} ر.س</p>
+                            <p className="font-medium">{itemTotal} جنيه</p>
                           </div>
                           
-                          {/* Remove */}
                           <button
                             onClick={() => handleRemoveItem(item.id)}
                             className="p-2 text-gray-400 hover:text-red-500 transition-colors"
@@ -132,7 +126,7 @@ const Cart = () => {
                   <div className="p-6 flex justify-between">
                     <Button
                       variant="outline"
-                      className="text-bloom-navy hover:bg-gray-100"
+                      className="text-blue-900 hover:bg-gray-100"
                       asChild
                     >
                       <Link to="/">
@@ -152,28 +146,27 @@ const Cart = () => {
                 </div>
               </div>
               
-              {/* Order summary */}
               <div>
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-bold text-bloom-navy mb-6">ملخص الطلب</h2>
+                  <h2 className="text-xl font-bold text-blue-900 mb-6">ملخص الطلب</h2>
                   
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
                       <span className="text-gray-600">المجموع الفرعي</span>
-                      <span className="font-medium">{subtotal} ر.س</span>
+                      <span className="font-medium">{subtotal} جنيه</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">الشحن</span>
                       <span className="font-medium">
-                        {shipping === 0 ? "مجاني" : `${shipping} ر.س`}
+                        {shipping === 0 ? "مجاني" : `${shipping} جنيه`}
                       </span>
                     </div>
                     
                     <Separator />
                     
                     <div className="flex justify-between text-lg font-bold">
-                      <span className="text-bloom-navy">الإجمالي</span>
-                      <span className="text-bloom-navy">{total} ر.س</span>
+                      <span className="text-blue-900">الإجمالي</span>
+                      <span className="text-blue-900">{total} جنيه</span>
                     </div>
                     
                     {shipping === 0 && (
@@ -183,7 +176,6 @@ const Cart = () => {
                     )}
                   </div>
                   
-                  {/* Coupon code */}
                   <div className="mb-6">
                     <div className="flex mb-3">
                       <input
@@ -191,10 +183,10 @@ const Cart = () => {
                         placeholder="كود الخصم"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
-                        className="flex-1 border border-gray-300 rounded-r-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-bloom-gold focus:border-transparent"
+                        className="flex-1 border border-gray-300 rounded-r-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
                       />
                       <Button
-                        className="bg-bloom-gold text-bloom-navy rounded-l-md rounded-r-none hover:bg-bloom-gold/90"
+                        className="bg-amber-600 text-white rounded-l-md rounded-r-none hover:bg-amber-700"
                         disabled={!couponCode}
                       >
                         تطبيق
@@ -203,22 +195,11 @@ const Cart = () => {
                   </div>
                   
                   <Button
-                    className="w-full bg-bloom-navy hover:bg-bloom-navy/90 text-lg py-6"
+                    className="w-full bg-blue-900 hover:bg-blue-800 text-lg py-6"
                     asChild
                   >
                     <Link to="/checkout">إتمام الطلب</Link>
                   </Button>
-                  
-                  <div className="mt-6 text-center text-sm text-gray-500">
-                    بالضغط على "إتمام الطلب"، أنت توافق على
-                    <Link to="/terms" className="text-bloom-navy hover:underline mx-1">
-                      شروط الخدمة
-                    </Link>
-                    و
-                    <Link to="/privacy" className="text-bloom-navy hover:underline mr-1">
-                      سياسة الخصوصية
-                    </Link>
-                  </div>
                 </div>
               </div>
             </div>

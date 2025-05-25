@@ -60,17 +60,6 @@ export interface Order {
   notes?: string;
 }
 
-// أنواع بيانات المراجعات
-export interface Review {
-  id: string;
-  userId: string;
-  bookId: string;
-  rating: number;
-  comment: string;
-  reviewDate: string;
-  userName: string;
-}
-
 // أنواع بيانات الفئات
 export interface Category {
   id: string;
@@ -78,6 +67,42 @@ export interface Category {
   description: string;
   image: string;
   booksCount: number;
+}
+
+// أنواع بيانات الكوبونات
+export interface Coupon {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  minimumOrder: number;
+  expiryDate: string;
+  isActive: boolean;
+  usageLimit: number;
+  usedCount: number;
+}
+
+// أنواع بيانات المناطق والعناوين
+export interface Area {
+  id: string;
+  name: string;
+  governorate: string;
+  shippingCost: number;
+}
+
+export interface Address {
+  id: string;
+  userId: string;
+  name: string;
+  phone: string;
+  governorate: string;
+  city: string;
+  area: string;
+  street: string;
+  building: string;
+  floor?: string;
+  apartment?: string;
+  isDefault: boolean;
 }
 
 // أنواع الاستجابات من الـ API
