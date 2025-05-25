@@ -1,15 +1,16 @@
 
 import { createContext, useState, useContext, ReactNode } from "react";
-import { Product, CartItem } from "@/types";
+import { Book, CartItem } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (book: Book, quantity?: number) => void;
+  removeFromCart: (bookId: string) => void;
+  updateQuantity: (bookId: string, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
+  getCartCount: () => number;
 }
 
 const CartContext = createContext<CartContextType>({
@@ -19,6 +20,7 @@ const CartContext = createContext<CartContextType>({
   updateQuantity: () => {},
   clearCart: () => {},
   getCartTotal: () => 0,
+  getCartCount: () => 0,
 });
 
 export const useCart = () => useContext(CartContext);
@@ -27,18 +29,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
 
-  const addToCart = (product: Product, quantity = 1) => {
+  const addToCart = (book: Book, quantity = 1) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
+      const existingItem = prevItems.find((item) => item.id === book.id);
 
       if (existingItem) {
         toast({
           title: "تم تحديث السلة",
-          description: `تم تحديث كمية ${product.name} في سلة التسوق`,
+          description: `تم تحديث كمية "${book.title}" في سلة التسوق`,
         });
 
         return prevItems.map((item) =>
-          item.id === product.id
+          item.id === book.id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -46,37 +48,37 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "تمت الإضافة إلى السلة",
-        description: `تمت إضافة ${product.name} إلى سلة التسوق`,
+        description: `تمت إضافة "${book.title}" إلى سلة التسوق`,
       });
 
-      return [...prevItems, { ...product, quantity }];
+      return [...prevItems, { ...book, quantity }];
     });
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = (bookId: string) => {
     setCartItems((prevItems) => {
-      const itemToRemove = prevItems.find((item) => item.id === productId);
+      const itemToRemove = prevItems.find((item) => item.id === bookId);
       
       if (itemToRemove) {
         toast({
-          title: "تمت إزالة المنتج",
-          description: `تمت إزالة ${itemToRemove.name} من سلة التسوق`,
+          title: "تمت إزالة الكتاب",
+          description: `تمت إزالة "${itemToRemove.title}" من سلة التسوق`,
         });
       }
       
-      return prevItems.filter((item) => item.id !== productId);
+      return prevItems.filter((item) => item.id !== bookId);
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (bookId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(bookId);
       return;
     }
 
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
+        item.id === bookId ? { ...item, quantity } : item
       )
     );
   };
@@ -96,6 +98,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }, 0);
   };
 
+  const getCartCount = () => {
+    return cartItems.reduce((count, item) => count + item.quantity, 0);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -105,6 +111,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updateQuantity,
         clearCart,
         getCartTotal,
+        getCartCount,
       }}
     >
       {children}

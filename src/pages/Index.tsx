@@ -3,7 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSlider from "@/components/home/HeroSlider";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
-import FeaturedProducts from "@/components/home/FeaturedProducts";
+import FeaturedBooks from "@/components/home/FeaturedBooks";
 import PromoBanner from "@/components/home/PromoBanner";
 import Testimonials from "@/components/home/Testimonials";
 import Newsletter from "@/components/home/Newsletter";
@@ -16,10 +16,10 @@ const Index = () => {
       <main className="flex-grow">
         <HeroSlider />
         <FeaturedCategories />
-        <FeaturedProducts />
+        <FeaturedBooks />
         <PromoBanner />
-        <Testimonials />
         <Features />
+        <Testimonials />
         <Newsletter />
       </main>
       <Footer />

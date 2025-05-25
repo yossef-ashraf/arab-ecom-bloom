@@ -1,26 +1,29 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, X } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, X, Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { cartItems } = useCart();
+  const { user, isAuthenticated } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const categories = [
-    { id: 1, name: "إلكترونيات", slug: "electronics" },
-    { id: 2, name: "ملابس", slug: "clothing" },
-    { id: 3, name: "كتب", slug: "books" },
-    { id: 4, name: "أثاث", slug: "furniture" },
-    { id: 5, name: "هدايا", slug: "gifts" },
+    { id: 1, name: "روايات عربية", slug: "arabic-novels" },
+    { id: 2, name: "كتب دينية", slug: "religious-books" },
+    { id: 3, name: "كتب علمية", slug: "science-books" },
+    { id: 4, name: "تاريخ", slug: "history" },
+    { id: 5, name: "كتب الطبخ", slug: "cooking-books" },
+    { id: 6, name: "روايات عالمية", slug: "world-novels" },
   ];
 
   return (
@@ -28,8 +31,9 @@ const Navbar = () => {
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-bloom-navy">
-            بلوم<span className="text-bloom-gold">ستور</span>
+          <Link to="/" className="text-2xl font-bold text-blue-900 flex items-center">
+            <Book className="ml-2" size={28} />
+            مكتبة<span className="text-amber-600">مصر</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -38,7 +42,7 @@ const Navbar = () => {
               <Link
                 key={category.id}
                 to={`/categories/${category.slug}`}
-                className="text-gray-700 hover:text-bloom-gold transition-colors"
+                className="text-gray-700 hover:text-amber-600 transition-colors"
               >
                 {category.name}
               </Link>
@@ -50,7 +54,7 @@ const Navbar = () => {
             <div className="relative w-full">
               <Input
                 type="text"
-                placeholder="ابحث عن المنتجات..."
+                placeholder="ابحث عن الكتب..."
                 className="w-full pl-10 pr-4"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -61,17 +65,26 @@ const Navbar = () => {
 
           {/* Right Icons */}
           <div className="flex items-center space-x-4 space-x-reverse">
-            <Link to="/login" className="text-gray-700 hover:text-bloom-gold">
-              <User size={24} />
-            </Link>
-            <Link to="/cart" className="text-gray-700 hover:text-bloom-gold relative">
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="text-gray-700 hover:text-amber-600 flex items-center">
+                <User size={24} className="ml-1" />
+                <span className="hidden md:inline">{user?.firstName}</span>
+              </Link>
+            ) : (
+              <Link to="/login" className="text-gray-700 hover:text-amber-600">
+                <User size={24} />
+              </Link>
+            )}
+            
+            <Link to="/cart" className="text-gray-700 hover:text-amber-600 relative">
               <ShoppingCart size={24} />
               {cartItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-bloom-coral text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItems.length}
                 </span>
               )}
             </Link>
+            
             <button
               className="md:hidden text-gray-700 focus:outline-none"
               onClick={toggleMenu}
@@ -87,7 +100,7 @@ const Navbar = () => {
             <div className="flex items-center mb-4">
               <Input
                 type="text"
-                placeholder="ابحث عن المنتجات..."
+                placeholder="ابحث عن الكتب..."
                 className="w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -102,7 +115,7 @@ const Navbar = () => {
                 <Link
                   key={category.id}
                   to={`/categories/${category.slug}`}
-                  className="text-gray-700 hover:text-bloom-gold transition-colors py-2"
+                  className="text-gray-700 hover:text-amber-600 transition-colors py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {category.name}

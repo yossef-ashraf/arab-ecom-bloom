@@ -1,176 +1,404 @@
 
-import { Product, CartItem } from "@/types";
-import { mockProducts, users } from "@/data/mockData";
+import { Book, CartItem, User, Order, Review, Category, AuthResponse, LoginRequest, RegisterRequest, ApiResponse, PaginatedResponse, SearchFilters, PaginationParams } from "@/types";
 
 // محاكاة تأخير الشبكة
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// الرابط الأساسي للـ API (يمكن تغييره حسب البيئة)
+const API_BASE_URL = process.env.VITE_API_URL || 'https://api.bookstore.com';
+
 export const api = {
-  // خدمات المنتجات
-  products: {
-    // جلب كل المنتجات
-    getAll: async (): Promise<Product[]> => {
-      await delay(800); // محاكاة تأخير الشبكة
-      return [...mockProducts];
-    },
-    
-    // جلب منتج معين بالمعرف
-    getById: async (id: string): Promise<Product | null> => {
-      await delay(600);
-      const product = mockProducts.find(p => p.id === id);
-      return product ? { ...product } : null;
-    },
-    
-    // جلب المنتجات حسب الفئة
-    getByCategory: async (category: string): Promise<Product[]> => {
-      await delay(800);
-      return mockProducts.filter(p => p.category === category);
-    },
-    
-    // البحث عن منتجات
-    search: async (query: string): Promise<Product[]> => {
-      await delay(1000);
-      const searchTerm = query.toLowerCase();
-      return mockProducts.filter(p => 
-        p.name.toLowerCase().includes(searchTerm) || 
-        p.description.toLowerCase().includes(searchTerm)
-      );
-    },
-    
-    // جلب المنتجات المميزة
-    getFeatured: async (): Promise<Product[]> => {
-      await delay(600);
-      return mockProducts.slice(0, 4);
-    }
-  },
-  
-  // خدمات المستخدم
+  // ========== خدمات التوثيق ==========
   auth: {
     // تسجيل الدخول
-    login: async (email: string, password: string): Promise<{
-      success: boolean;
-      message: string;
-      userData?: { id: string; email: string; firstName: string; lastName: string };
-    }> => {
+    login: async (credentials: LoginRequest): Promise<AuthResponse> => {
       await delay(1000);
       
-      const user = users.find(u => u.email === email);
-      
-      if (!user) {
+      // محاكاة استجابة نجح تسجيل الدخول
+      if (credentials.email === "test@example.com" && credentials.password === "123456") {
         return {
-          success: false,
-          message: "البريد الإلكتروني غير مسجل"
-        };
-      }
-      
-      if (user.password !== password) {
-        return {
-          success: false,
-          message: "كلمة المرور غير صحيحة"
+          success: true,
+          message: "تم تسجيل الدخول بنجاح",
+          data: {
+            user: {
+              id: "1",
+              firstName: "أحمد",
+              lastName: "محمد",
+              email: "test@example.com",
+              phone: "01234567890",
+              governorate: "القاهرة",
+              city: "مدينة نصر",
+              address: "شارع مصطفى النحاس",
+              birthDate: "1990-01-01",
+              gender: "male",
+              createdAt: "2024-01-01",
+              isActive: true
+            },
+            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
         };
       }
       
       return {
-        success: true,
-        message: "تم تسجيل الدخول بنجاح",
-        userData: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName
-        }
+        success: false,
+        message: "البريد الإلكتروني أو كلمة المرور غير صحيحة"
       };
     },
-    
-    // تسجيل مستخدم جديد
-    register: async (userData: {
-      email: string;
-      password: string;
-      firstName: string;
-      lastName: string;
-    }): Promise<{
-      success: boolean;
-      message: string;
-      userData?: { id: string; email: string; firstName: string; lastName: string };
-    }> => {
+
+    // تسجيل حساب جديد
+    register: async (userData: RegisterRequest): Promise<AuthResponse> => {
       await delay(1500);
-      
-      // التحقق من وجود البريد الإلكتروني مسبقًا
-      const existingUser = users.find(u => u.email === userData.email);
-      
-      if (existingUser) {
-        return {
-          success: false,
-          message: "البريد الإلكتروني مسجل مسبقًا"
-        };
-      }
-      
-      // إنشاء معرف جديد (في التطبيق الحقيقي سيتم من قبل قاعدة البيانات)
-      const newId = String(users.length + 1);
-      
-      // إضافة المستخدم الجديد (محاكاة فقط)
-      const newUser = {
-        id: newId,
-        email: userData.email,
-        password: userData.password,
-        firstName: userData.firstName,
-        lastName: userData.lastName
-      };
-      
-      users.push(newUser);
       
       return {
         success: true,
         message: "تم إنشاء الحساب بنجاح",
-        userData: {
-          id: newUser.id,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName
+        data: {
+          user: {
+            id: Date.now().toString(),
+            ...userData,
+            createdAt: new Date().toISOString(),
+            isActive: true
+          },
+          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      };
+    },
+
+    // تسجيل الخروج
+    logout: async (): Promise<ApiResponse<null>> => {
+      await delay(500);
+      return {
+        success: true,
+        message: "تم تسجيل الخروج بنجاح"
+      };
+    },
+
+    // التحقق من الرمز المميز
+    verifyToken: async (token: string): Promise<ApiResponse<User>> => {
+      await delay(800);
+      return {
+        success: true,
+        message: "الرمز المميز صالح",
+        data: {
+          id: "1",
+          firstName: "أحمد",
+          lastName: "محمد",
+          email: "test@example.com",
+          phone: "01234567890",
+          governorate: "القاهرة",
+          city: "مدينة نصر",
+          address: "شارع مصطفى النحاس",
+          birthDate: "1990-01-01",
+          gender: "male",
+          createdAt: "2024-01-01",
+          isActive: true
         }
       };
     }
   },
-  
-  // خدمات الطلب
-  orders: {
-    // إرسال طلب جديد
-    create: async (orderData: {
-      cartItems: CartItem[];
-      totalAmount: number;
-      shippingAddress: {
-        name: string;
-        street: string;
-        city: string;
-        zipCode: string;
-        phone: string;
-      };
-      paymentMethod: string;
-    }): Promise<{
-      success: boolean;
-      message: string;
-      orderId?: string;
-    }> => {
-      await delay(2000); // محاكاة عملية الدفع والمعالجة
+
+  // ========== خدمات الكتب ==========
+  books: {
+    // جلب جميع الكتب مع الفلترة والصفحات
+    getAll: async (filters?: SearchFilters, pagination?: PaginationParams): Promise<PaginatedResponse<Book>> => {
+      await delay(1000);
       
-      // التحقق من توفر المنتجات (محاكاة بسيطة)
-      for (const item of orderData.cartItems) {
-        const product = await api.products.getById(item.id);
-        if (!product || product.stock < item.quantity) {
-          return {
-            success: false,
-            message: `المنتج ${item.name} غير متوفر بالكمية المطلوبة`
-          };
+      const mockBooks: Book[] = [
+        {
+          id: "1",
+          title: "الأسود يليق بك",
+          author: "أحلام مستغانمي",
+          price: 80,
+          discount: true,
+          discountPrice: 65,
+          category: "روايات عربية",
+          image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
+          rating: 4.5,
+          description: "رواية رومانسية رائعة من أحلام مستغانمي",
+          isbn: "978-977-14-1234-5",
+          publisher: "دار الشروق",
+          publicationDate: "2023-01-15",
+          language: "العربية",
+          pageCount: 320,
+          format: "pdf",
+          fileSize: "2.5 MB",
+          inStock: true
+        },
+        {
+          id: "2",
+          title: "مئة عام من العزلة",
+          author: "غابرييل غارسيا ماركيز",
+          price: 120,
+          discount: false,
+          discountPrice: 120,
+          category: "روايات عالمية",
+          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+          rating: 4.8,
+          description: "تحفة الأدب العالمي المترجمة للعربية",
+          isbn: "978-977-14-5678-9",
+          publisher: "المركز الثقافي العربي",
+          publicationDate: "2023-02-20",
+          language: "العربية",
+          pageCount: 450,
+          format: "epub",
+          fileSize: "3.2 MB",
+          inStock: true
         }
-      }
+      ];
+
+      return {
+        success: true,
+        message: "تم جلب الكتب بنجاح",
+        data: mockBooks,
+        pagination: {
+          currentPage: pagination?.page || 1,
+          totalPages: 5,
+          totalItems: 50,
+          itemsPerPage: pagination?.limit || 10
+        }
+      };
+    },
+
+    // جلب كتاب محدد
+    getById: async (id: string): Promise<ApiResponse<Book>> => {
+      await delay(600);
       
-      // إنشاء معرف للطلب
-      const orderId = 'ORD-' + Date.now().toString().slice(-8);
+      const book: Book = {
+        id,
+        title: "الأسود يليق بك",
+        author: "أحلام مستغانمي",
+        price: 80,
+        discount: true,
+        discountPrice: 65,
+        category: "روايات عربية",
+        image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
+        rating: 4.5,
+        description: "رواية رومانسية رائعة من أحلام مستغانمي تحكي قصة حب معقدة",
+        isbn: "978-977-14-1234-5",
+        publisher: "دار الشروق",
+        publicationDate: "2023-01-15",
+        language: "العربية",
+        pageCount: 320,
+        format: "pdf",
+        fileSize: "2.5 MB",
+        inStock: true
+      };
+
+      return {
+        success: true,
+        message: "تم جلب بيانات الكتاب بنجاح",
+        data: book
+      };
+    },
+
+    // البحث في الكتب
+    search: async (query: string, filters?: SearchFilters): Promise<PaginatedResponse<Book>> => {
+      await delay(1200);
       
       return {
         success: true,
+        message: "تم البحث بنجاح",
+        data: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 0,
+          itemsPerPage: 10
+        }
+      };
+    },
+
+    // جلب الكتب الأكثر مبيعاً
+    getBestSellers: async (): Promise<ApiResponse<Book[]>> => {
+      await delay(800);
+      return {
+        success: true,
+        message: "تم جلب الكتب الأكثر مبيعاً",
+        data: []
+      };
+    },
+
+    // جلب الكتب الجديدة
+    getNewReleases: async (): Promise<ApiResponse<Book[]>> => {
+      await delay(800);
+      return {
+        success: true,
+        message: "تم جلب الكتب الجديدة",
+        data: []
+      };
+    }
+  },
+
+  // ========== خدمات الفئات ==========
+  categories: {
+    getAll: async (): Promise<ApiResponse<Category[]>> => {
+      await delay(600);
+      
+      const categories: Category[] = [
+        {
+          id: "1",
+          name: "روايات عربية",
+          description: "أجمل الروايات العربية الحديثة والكلاسيكية",
+          image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400",
+          booksCount: 150
+        },
+        {
+          id: "2",
+          name: "كتب دينية",
+          description: "كتب التفسير والفقه والسيرة النبوية",
+          image: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400",
+          booksCount: 200
+        },
+        {
+          id: "3",
+          name: "كتب علمية",
+          description: "كتب الفيزياء والكيمياء والرياضيات",
+          image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400",
+          booksCount: 100
+        }
+      ];
+
+      return {
+        success: true,
+        message: "تم جلب الفئات بنجاح",
+        data: categories
+      };
+    }
+  },
+
+  // ========== خدمات الطلبات ==========
+  orders: {
+    // إنشاء طلب جديد
+    create: async (orderData: {
+      items: CartItem[];
+      shippingAddress: {
+        governorate: string;
+        city: string;
+        address: string;
+        phone: string;
+      };
+      paymentMethod: string;
+      notes?: string;
+    }): Promise<ApiResponse<Order>> => {
+      await delay(2000);
+      
+      const order: Order = {
+        id: `ORD-${Date.now()}`,
+        userId: "1",
+        orderDate: new Date().toISOString(),
+        status: "pending",
+        totalAmount: orderData.items.reduce((total, item) => 
+          total + (item.discount ? item.discountPrice : item.price) * item.quantity, 0
+        ),
+        items: orderData.items,
+        shippingAddress: orderData.shippingAddress,
+        paymentMethod: orderData.paymentMethod as any,
+        paymentStatus: "pending",
+        notes: orderData.notes
+      };
+
+      return {
+        success: true,
         message: "تم إنشاء الطلب بنجاح",
-        orderId
+        data: order
+      };
+    },
+
+    // جلب طلبات المستخدم
+    getUserOrders: async (userId: string): Promise<ApiResponse<Order[]>> => {
+      await delay(1000);
+      return {
+        success: true,
+        message: "تم جلب الطلبات بنجاح",
+        data: []
+      };
+    },
+
+    // جلب تفاصيل طلب محدد
+    getById: async (orderId: string): Promise<ApiResponse<Order>> => {
+      await delay(800);
+      
+      const order: Order = {
+        id: orderId,
+        userId: "1",
+        orderDate: "2024-01-15T10:30:00Z",
+        status: "delivered",
+        totalAmount: 145,
+        items: [],
+        shippingAddress: {
+          governorate: "القاهرة",
+          city: "مدينة نصر",
+          address: "شارع مصطفى النحاس",
+          phone: "01234567890"
+        },
+        paymentMethod: "card",
+        paymentStatus: "paid"
+      };
+
+      return {
+        success: true,
+        message: "تم جلب تفاصيل الطلب",
+        data: order
+      };
+    }
+  },
+
+  // ========== خدمات المراجعات ==========
+  reviews: {
+    // جلب مراجعات كتاب
+    getBookReviews: async (bookId: string): Promise<ApiResponse<Review[]>> => {
+      await delay(800);
+      return {
+        success: true,
+        message: "تم جلب المراجعات بنجاح",
+        data: []
+      };
+    },
+
+    // إضافة مراجعة جديدة
+    create: async (reviewData: {
+      bookId: string;
+      rating: number;
+      comment: string;
+    }): Promise<ApiResponse<Review>> => {
+      await delay(1000);
+      
+      const review: Review = {
+        id: Date.now().toString(),
+        userId: "1",
+        bookId: reviewData.bookId,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        reviewDate: new Date().toISOString(),
+        userName: "أحمد محمد"
+      };
+
+      return {
+        success: true,
+        message: "تم إضافة المراجعة بنجاح",
+        data: review
+      };
+    }
+  },
+
+  // ========== خدمات الملف الشخصي ==========
+  profile: {
+    // تحديث البيانات الشخصية
+    update: async (userData: Partial<User>): Promise<ApiResponse<User>> => {
+      await delay(1000);
+      return {
+        success: true,
+        message: "تم تحديث البيانات بنجاح",
+        data: userData as User
+      };
+    },
+
+    // تغيير كلمة المرور
+    changePassword: async (currentPassword: string, newPassword: string): Promise<ApiResponse<null>> => {
+      await delay(1000);
+      return {
+        success: true,
+        message: "تم تغيير كلمة المرور بنجاح"
       };
     }
   }

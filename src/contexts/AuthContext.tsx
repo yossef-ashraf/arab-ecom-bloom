@@ -2,70 +2,71 @@
 import { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/services/api";
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
+import { User, LoginRequest, RegisterRequest } from "@/types";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-  }) => Promise<boolean>;
+  token: string | null;
+  login: (credentials: LoginRequest) => Promise<boolean>;
+  register: (userData: RegisterRequest) => Promise<boolean>;
   logout: () => void;
+  updateProfile: (userData: Partial<User>) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  token: null,
   login: async () => false,
   register: async () => false,
   logout: () => {},
+  updateProfile: async () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
   // التحقق من وجود مستخدم مسجل في التخزين المحلي عند بدء التطبيق
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const storedToken = localStorage.getItem("token");
+    
+    if (storedUser && storedToken) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
+        setToken(storedToken);
       } catch (error) {
         console.error("Error parsing stored user:", error);
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
     try {
-      const response = await api.auth.login(email, password);
+      const response = await api.auth.login(credentials);
       
-      if (response.success && response.userData) {
-        setUser(response.userData);
-        localStorage.setItem("user", JSON.stringify(response.userData));
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        setToken(response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("token", response.data.token);
+        
         toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحبًا بك في متجرنا",
+          title: "مرحباً بك!",
+          description: `أهلاً وسهلاً ${response.data.user.firstName}`,
         });
         return true;
       } else {
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Login error:", error);
       toast({
-        title: "خطأ في تسجيل الدخول",
+        title: "خطأ في الاتصال",
         description: "حدث خطأ أثناء محاولة تسجيل الدخول. يرجى المحاولة مرة أخرى.",
         variant: "destructive",
       });
@@ -89,22 +90,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-  }) => {
+  const register = async (userData: RegisterRequest) => {
     setIsLoading(true);
     try {
       const response = await api.auth.register(userData);
       
-      if (response.success && response.userData) {
-        setUser(response.userData);
-        localStorage.setItem("user", JSON.stringify(response.userData));
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        setToken(response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("token", response.data.token);
+        
         toast({
-          title: "تم إنشاء الحساب بنجاح",
-          description: "مرحبًا بك في متجرنا",
+          title: "مرحباً بك في مكتبة مصر!",
+          description: `تم إنشاء حسابك بنجاح يا ${response.data.user.firstName}`,
         });
         return true;
       } else {
@@ -118,8 +117,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Registration error:", error);
       toast({
-        title: "خطأ في إنشاء الحساب",
+        title: "خطأ في الاتصال",
         description: "حدث خطأ أثناء محاولة إنشاء الحساب. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateProfile = async (userData: Partial<User>) => {
+    if (!user) return false;
+    
+    setIsLoading(true);
+    try {
+      const response = await api.profile.update(userData);
+      
+      if (response.success && response.data) {
+        const updatedUser = { ...user, ...userData };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        toast({
+          title: "تم التحديث بنجاح",
+          description: "تم تحديث بياناتك الشخصية",
+        });
+        return true;
+      } else {
+        toast({
+          title: "خطأ في التحديث",
+          description: response.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast({
+        title: "خطأ في الاتصال",
+        description: "حدث خطأ أثناء تحديث البيانات. يرجى المحاولة مرة أخرى.",
         variant: "destructive",
       });
       return false;
@@ -130,10 +167,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    
     toast({
       title: "تم تسجيل الخروج",
-      description: "تم تسجيل الخروج بنجاح. نراك قريبًا!",
+      description: "إلى اللقاء! نتطلع لرؤيتك مرة أخرى",
     });
   };
 
@@ -143,9 +183,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated: !!user,
         isLoading,
+        token,
         login,
         register,
         logout,
+        updateProfile,
       }}
     >
       {children}
