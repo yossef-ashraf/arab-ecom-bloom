@@ -67,6 +67,7 @@ export interface Category {
   description: string;
   image: string;
   booksCount: number;
+  itemCount:number;
 }
 
 // أنواع بيانات الكوبونات
