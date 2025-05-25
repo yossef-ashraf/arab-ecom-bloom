@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Products from "./pages/Products";
+import Categories from "./pages/Categories";
 import CategoryProducts from "./pages/CategoryProducts";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/categories" element={<Categories />} />
               <Route path="/categories/:id" element={<CategoryProducts />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/login" element={<Login />} />
