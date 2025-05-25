@@ -16,9 +16,20 @@ import {
   Address
 } from '@/types';
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'http://127.0.0.1:3000/api/';
 
 // Mock data for development (will be replaced with real API calls)
+// api.ts
+export const getProducts = async () => {
+  const res = await fetch('http://127.0.0.1:8000/api/products/');
+  if (!res.ok) throw new Error('Failed to fetch products');
+  const json = await res.json();
+  return json.data; // because the API returns { status, message, data }
+};
+
+// const mockBooks: any= getProducts();
+// console.log(mockBooks);
+
 const mockBooks: Book[] = [
   {
     id: "1",
