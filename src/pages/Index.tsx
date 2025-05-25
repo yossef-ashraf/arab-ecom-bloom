@@ -9,6 +9,7 @@ import PromoBanner from "@/components/home/PromoBanner";
 import Testimonials from "@/components/home/Testimonials";
 import Newsletter from "@/components/home/Newsletter";
 import Features from "@/components/home/Features";
+import Categories  from "./Categories";
 
 const Index = () => {
   return (
@@ -17,6 +18,7 @@ const Index = () => {
       <main className="flex-grow">
         {/* <HeroSlider /> */}
         {/* <FeaturedCategories /> */}
+        <Categories />
         <Products />
         {/* <PromoBanner /> */}
         <Features />
