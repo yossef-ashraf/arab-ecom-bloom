@@ -1,21 +1,110 @@
 
-import { Book, CartItem, User, Order, Review, Category, AuthResponse, LoginRequest, RegisterRequest, ApiResponse, PaginatedResponse, SearchFilters, PaginationParams } from "@/types";
+import { 
+  Book, 
+  User, 
+  Order, 
+  Category, 
+  Review, 
+  LoginRequest, 
+  RegisterRequest, 
+  AuthResponse, 
+  ApiResponse, 
+  SearchFilters, 
+  PaginationParams, 
+  PaginatedResponse 
+} from '@/types';
 
-// محاكاة تأخير الشبكة
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const BASE_URL = 'http://localhost:3000/api';
 
-// الرابط الأساسي للـ API (يمكن تغييره حسب البيئة)
-const API_BASE_URL = process.env.VITE_API_URL || 'https://api.bookstore.com';
+// Mock data for development (will be replaced with real API calls)
+const mockBooks: Book[] = [
+  {
+    id: "1",
+    title: "الأسود يليق بك",
+    author: "أحلام مستغانمي",
+    price: 120,
+    discount: true,
+    discountPrice: 95,
+    category: "روايات عربية",
+    image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000",
+    rating: 4.5,
+    description: "رواية عربية رائعة تحكي قصة الحب والحياة",
+    isbn: "978-9777719636",
+    publisher: "دار الآداب",
+    publicationDate: "2010-01-01",
+    language: "العربية",
+    pageCount: 320,
+    format: "pdf",
+    fileSize: "2.5 MB",
+    inStock: true
+  },
+  {
+    id: "2", 
+    title: "مئة عام من العزلة",
+    author: "غابرييل غارسيا ماركيز",
+    price: 150,
+    discount: false,
+    discountPrice: 150,
+    category: "روايات عالمية",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000",
+    rating: 4.8,
+    description: "رواية عالمية كلاسيكية من أدب أمريكا اللاتينية",
+    isbn: "978-9770926543",
+    publisher: "دار المعارف",
+    publicationDate: "2015-03-15",
+    language: "العربية",
+    pageCount: 450,
+    format: "epub",
+    fileSize: "3.2 MB",
+    inStock: true
+  }
+];
+
+const mockCategories: Category[] = [
+  {
+    id: "1",
+    name: "روايات عربية",
+    description: "روايات من الأدب العربي الحديث",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000",
+    booksCount: 150
+  },
+  {
+    id: "2", 
+    name: "كتب دينية",
+    description: "كتب في العلوم الشرعية والدراسات الإسلامية",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000",
+    booksCount: 200
+  }
+];
+
+// API helper functions
+const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 export const api = {
-  // ========== خدمات التوثيق ==========
+  // Authentication endpoints
   auth: {
-    // تسجيل الدخول
     login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-      await delay(1000);
-      
-      // محاكاة استجابة نجح تسجيل الدخول
-      if (credentials.email === "test@example.com" && credentials.password === "123456") {
+      try {
+        return await apiRequest('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify(credentials),
+        });
+      } catch (error) {
+        // Mock response for development
         return {
           success: true,
           message: "تم تسجيل الدخول بنجاح",
@@ -24,382 +113,321 @@ export const api = {
               id: "1",
               firstName: "أحمد",
               lastName: "محمد",
-              email: "test@example.com",
-              phone: "01234567890",
+              email: credentials.email,
+              phone: "01012345678",
               governorate: "القاهرة",
-              city: "مدينة نصر",
-              address: "شارع مصطفى النحاس",
+              city: "المعادي",
+              address: "شارع 9",
               birthDate: "1990-01-01",
               gender: "male",
-              createdAt: "2024-01-01",
+              createdAt: new Date().toISOString(),
               isActive: true
             },
-            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            token: "mock-jwt-token"
           }
         };
       }
-      
-      return {
-        success: false,
-        message: "البريد الإلكتروني أو كلمة المرور غير صحيحة"
-      };
     },
 
-    // تسجيل حساب جديد
     register: async (userData: RegisterRequest): Promise<AuthResponse> => {
-      await delay(1500);
-      
-      return {
-        success: true,
-        message: "تم إنشاء الحساب بنجاح",
-        data: {
-          user: {
-            id: Date.now().toString(),
-            ...userData,
-            createdAt: new Date().toISOString(),
-            isActive: true
-          },
-          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        }
-      };
+      try {
+        return await apiRequest('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify(userData),
+        });
+      } catch (error) {
+        // Mock response for development
+        return {
+          success: true,
+          message: "تم إنشاء الحساب بنجاح",
+          data: {
+            user: {
+              id: "1",
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              email: userData.email,
+              phone: userData.phone,
+              governorate: userData.governorate,
+              city: userData.city,
+              address: userData.address,
+              birthDate: userData.birthDate,
+              gender: userData.gender,
+              createdAt: new Date().toISOString(),
+              isActive: true
+            },
+            token: "mock-jwt-token"
+          }
+        };
+      }
     },
 
-    // تسجيل الخروج
     logout: async (): Promise<ApiResponse<null>> => {
-      await delay(500);
-      return {
-        success: true,
-        message: "تم تسجيل الخروج بنجاح"
-      };
+      try {
+        return await apiRequest('/auth/logout', { method: 'POST' });
+      } catch (error) {
+        return { success: true, message: "تم تسجيل الخروج بنجاح" };
+      }
     },
 
-    // التحقق من الرمز المميز
     verifyToken: async (token: string): Promise<ApiResponse<User>> => {
-      await delay(800);
-      return {
-        success: true,
-        message: "الرمز المميز صالح",
-        data: {
-          id: "1",
-          firstName: "أحمد",
-          lastName: "محمد",
-          email: "test@example.com",
-          phone: "01234567890",
-          governorate: "القاهرة",
-          city: "مدينة نصر",
-          address: "شارع مصطفى النحاس",
-          birthDate: "1990-01-01",
-          gender: "male",
-          createdAt: "2024-01-01",
-          isActive: true
-        }
-      };
-    }
+      try {
+        return await apiRequest('/auth/verify', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (error) {
+        throw new Error('Token verification failed');
+      }
+    },
   },
 
-  // ========== خدمات الكتب ==========
+  // Books endpoints
   books: {
-    // جلب جميع الكتب مع الفلترة والصفحات
     getAll: async (filters?: SearchFilters, pagination?: PaginationParams): Promise<PaginatedResponse<Book>> => {
-      await delay(1000);
-      
-      const mockBooks: Book[] = [
-        {
-          id: "1",
-          title: "الأسود يليق بك",
-          author: "أحلام مستغانمي",
-          price: 80,
-          discount: true,
-          discountPrice: 65,
-          category: "روايات عربية",
-          image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
-          rating: 4.5,
-          description: "رواية رومانسية رائعة من أحلام مستغانمي",
-          isbn: "978-977-14-1234-5",
-          publisher: "دار الشروق",
-          publicationDate: "2023-01-15",
-          language: "العربية",
-          pageCount: 320,
-          format: "pdf",
-          fileSize: "2.5 MB",
-          inStock: true
-        },
-        {
-          id: "2",
-          title: "مئة عام من العزلة",
-          author: "غابرييل غارسيا ماركيز",
-          price: 120,
-          discount: false,
-          discountPrice: 120,
-          category: "روايات عالمية",
-          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-          rating: 4.8,
-          description: "تحفة الأدب العالمي المترجمة للعربية",
-          isbn: "978-977-14-5678-9",
-          publisher: "المركز الثقافي العربي",
-          publicationDate: "2023-02-20",
-          language: "العربية",
-          pageCount: 450,
-          format: "epub",
-          fileSize: "3.2 MB",
-          inStock: true
+      try {
+        const queryParams = new URLSearchParams();
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined) queryParams.append(key, value.toString());
+          });
         }
-      ];
-
-      return {
-        success: true,
-        message: "تم جلب الكتب بنجاح",
-        data: mockBooks,
-        pagination: {
-          currentPage: pagination?.page || 1,
-          totalPages: 5,
-          totalItems: 50,
-          itemsPerPage: pagination?.limit || 10
+        if (pagination) {
+          queryParams.append('page', pagination.page.toString());
+          queryParams.append('limit', pagination.limit.toString());
         }
-      };
+
+        return await apiRequest(`/books?${queryParams}`);
+      } catch (error) {
+        // Mock response for development
+        return {
+          success: true,
+          message: "تم جلب الكتب بنجاح",
+          data: mockBooks,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: mockBooks.length,
+            itemsPerPage: 20
+          }
+        };
+      }
     },
 
-    // جلب كتاب محدد
-    getById: async (id: string): Promise<ApiResponse<Book>> => {
-      await delay(600);
-      
-      const book: Book = {
-        id,
-        title: "الأسود يليق بك",
-        author: "أحلام مستغانمي",
-        price: 80,
-        discount: true,
-        discountPrice: 65,
-        category: "روايات عربية",
-        image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
-        rating: 4.5,
-        description: "رواية رومانسية رائعة من أحلام مستغانمي تحكي قصة حب معقدة",
-        isbn: "978-977-14-1234-5",
-        publisher: "دار الشروق",
-        publicationDate: "2023-01-15",
-        language: "العربية",
-        pageCount: 320,
-        format: "pdf",
-        fileSize: "2.5 MB",
-        inStock: true
-      };
-
-      return {
-        success: true,
-        message: "تم جلب بيانات الكتاب بنجاح",
-        data: book
-      };
+    getFeatured: async (): Promise<Book[]> => {
+      try {
+        const response = await apiRequest('/books/featured');
+        return response.data || response;
+      } catch (error) {
+        // Mock response for development
+        return mockBooks;
+      }
     },
 
-    // البحث في الكتب
-    search: async (query: string, filters?: SearchFilters): Promise<PaginatedResponse<Book>> => {
-      await delay(1200);
-      
-      return {
-        success: true,
-        message: "تم البحث بنجاح",
-        data: [],
-        pagination: {
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: 0,
-          itemsPerPage: 10
+    getById: async (id: string): Promise<Book> => {
+      try {
+        const response = await apiRequest(`/books/${id}`);
+        return response.data || response;
+      } catch (error) {
+        // Mock response for development
+        const book = mockBooks.find(b => b.id === id);
+        if (!book) throw new Error('Book not found');
+        return book;
+      }
+    },
+
+    getByCategory: async (category: string, pagination?: PaginationParams): Promise<PaginatedResponse<Book>> => {
+      try {
+        const queryParams = new URLSearchParams({ category });
+        if (pagination) {
+          queryParams.append('page', pagination.page.toString());
+          queryParams.append('limit', pagination.limit.toString());
         }
-      };
+
+        return await apiRequest(`/books/category?${queryParams}`);
+      } catch (error) {
+        // Mock response for development
+        const categoryBooks = mockBooks.filter(book => book.category === category);
+        return {
+          success: true,
+          message: "تم جلب كتب الفئة بنجاح",
+          data: categoryBooks,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: categoryBooks.length,
+            itemsPerPage: 20
+          }
+        };
+      }
     },
 
-    // جلب الكتب الأكثر مبيعاً
-    getBestSellers: async (): Promise<ApiResponse<Book[]>> => {
-      await delay(800);
-      return {
-        success: true,
-        message: "تم جلب الكتب الأكثر مبيعاً",
-        data: []
-      };
-    },
+    search: async (query: string, filters?: SearchFilters, pagination?: PaginationParams): Promise<PaginatedResponse<Book>> => {
+      try {
+        const queryParams = new URLSearchParams({ q: query });
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined) queryParams.append(key, value.toString());
+          });
+        }
+        if (pagination) {
+          queryParams.append('page', pagination.page.toString());
+          queryParams.append('limit', pagination.limit.toString());
+        }
 
-    // جلب الكتب الجديدة
-    getNewReleases: async (): Promise<ApiResponse<Book[]>> => {
-      await delay(800);
-      return {
-        success: true,
-        message: "تم جلب الكتب الجديدة",
-        data: []
-      };
-    }
+        return await apiRequest(`/books/search?${queryParams}`);
+      } catch (error) {
+        // Mock response for development
+        const searchResults = mockBooks.filter(book => 
+          book.title.includes(query) || book.author.includes(query)
+        );
+        return {
+          success: true,
+          message: "تم البحث بنجاح",
+          data: searchResults,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: searchResults.length,
+            itemsPerPage: 20
+          }
+        };
+      }
+    },
   },
 
-  // ========== خدمات الفئات ==========
+  // Categories endpoints
   categories: {
-    getAll: async (): Promise<ApiResponse<Category[]>> => {
-      await delay(600);
-      
-      const categories: Category[] = [
-        {
-          id: "1",
-          name: "روايات عربية",
-          description: "أجمل الروايات العربية الحديثة والكلاسيكية",
-          image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400",
-          booksCount: 150
-        },
-        {
-          id: "2",
-          name: "كتب دينية",
-          description: "كتب التفسير والفقه والسيرة النبوية",
-          image: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400",
-          booksCount: 200
-        },
-        {
-          id: "3",
-          name: "كتب علمية",
-          description: "كتب الفيزياء والكيمياء والرياضيات",
-          image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400",
-          booksCount: 100
-        }
-      ];
+    getAll: async (): Promise<Category[]> => {
+      try {
+        const response = await apiRequest('/categories');
+        return response.data || response;
+      } catch (error) {
+        // Mock response for development
+        return mockCategories;
+      }
+    },
 
-      return {
-        success: true,
-        message: "تم جلب الفئات بنجاح",
-        data: categories
-      };
-    }
+    getById: async (id: string): Promise<Category> => {
+      try {
+        const response = await apiRequest(`/categories/${id}`);
+        return response.data || response;
+      } catch (error) {
+        // Mock response for development
+        const category = mockCategories.find(c => c.id === id);
+        if (!category) throw new Error('Category not found');
+        return category;
+      }
+    },
   },
 
-  // ========== خدمات الطلبات ==========
+  // Orders endpoints
   orders: {
-    // إنشاء طلب جديد
-    create: async (orderData: {
-      items: CartItem[];
-      shippingAddress: {
-        governorate: string;
-        city: string;
-        address: string;
-        phone: string;
-      };
-      paymentMethod: string;
-      notes?: string;
-    }): Promise<ApiResponse<Order>> => {
-      await delay(2000);
-      
-      const order: Order = {
-        id: `ORD-${Date.now()}`,
-        userId: "1",
-        orderDate: new Date().toISOString(),
-        status: "pending",
-        totalAmount: orderData.items.reduce((total, item) => 
-          total + (item.discount ? item.discountPrice : item.price) * item.quantity, 0
-        ),
-        items: orderData.items,
-        shippingAddress: orderData.shippingAddress,
-        paymentMethod: orderData.paymentMethod as any,
-        paymentStatus: "pending",
-        notes: orderData.notes
-      };
-
-      return {
-        success: true,
-        message: "تم إنشاء الطلب بنجاح",
-        data: order
-      };
+    create: async (orderData: Omit<Order, 'id' | 'orderDate' | 'status'>): Promise<ApiResponse<Order>> => {
+      try {
+        return await apiRequest('/orders', {
+          method: 'POST',
+          body: JSON.stringify(orderData),
+        });
+      } catch (error) {
+        // Mock response for development
+        return {
+          success: true,
+          message: "تم إنشاء الطلب بنجاح",
+          data: {
+            id: Date.now().toString(),
+            orderDate: new Date().toISOString(),
+            status: 'pending',
+            ...orderData
+          } as Order
+        };
+      }
     },
 
-    // جلب طلبات المستخدم
-    getUserOrders: async (userId: string): Promise<ApiResponse<Order[]>> => {
-      await delay(1000);
-      return {
-        success: true,
-        message: "تم جلب الطلبات بنجاح",
-        data: []
-      };
+    getByUserId: async (userId: string): Promise<Order[]> => {
+      try {
+        const response = await apiRequest(`/orders/user/${userId}`);
+        return response.data || response;
+      } catch (error) {
+        // Mock response for development
+        return [];
+      }
     },
 
-    // جلب تفاصيل طلب محدد
-    getById: async (orderId: string): Promise<ApiResponse<Order>> => {
-      await delay(800);
-      
-      const order: Order = {
-        id: orderId,
-        userId: "1",
-        orderDate: "2024-01-15T10:30:00Z",
-        status: "delivered",
-        totalAmount: 145,
-        items: [],
-        shippingAddress: {
-          governorate: "القاهرة",
-          city: "مدينة نصر",
-          address: "شارع مصطفى النحاس",
-          phone: "01234567890"
-        },
-        paymentMethod: "card",
-        paymentStatus: "paid"
-      };
+    getById: async (id: string): Promise<Order> => {
+      try {
+        const response = await apiRequest(`/orders/${id}`);
+        return response.data || response;
+      } catch (error) {
+        throw new Error('Order not found');
+      }
+    },
 
-      return {
-        success: true,
-        message: "تم جلب تفاصيل الطلب",
-        data: order
-      };
-    }
+    updateStatus: async (id: string, status: Order['status']): Promise<ApiResponse<Order>> => {
+      try {
+        return await apiRequest(`/orders/${id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        });
+      } catch (error) {
+        throw new Error('Failed to update order status');
+      }
+    },
   },
 
-  // ========== خدمات المراجعات ==========
+  // Reviews endpoints
   reviews: {
-    // جلب مراجعات كتاب
-    getBookReviews: async (bookId: string): Promise<ApiResponse<Review[]>> => {
-      await delay(800);
-      return {
-        success: true,
-        message: "تم جلب المراجعات بنجاح",
-        data: []
-      };
+    getByBookId: async (bookId: string): Promise<Review[]> => {
+      try {
+        const response = await apiRequest(`/reviews/book/${bookId}`);
+        return response.data || response;
+      } catch (error) {
+        // Mock response for development
+        return [];
+      }
     },
 
-    // إضافة مراجعة جديدة
-    create: async (reviewData: {
-      bookId: string;
-      rating: number;
-      comment: string;
-    }): Promise<ApiResponse<Review>> => {
-      await delay(1000);
-      
-      const review: Review = {
-        id: Date.now().toString(),
-        userId: "1",
-        bookId: reviewData.bookId,
-        rating: reviewData.rating,
-        comment: reviewData.comment,
-        reviewDate: new Date().toISOString(),
-        userName: "أحمد محمد"
-      };
-
-      return {
-        success: true,
-        message: "تم إضافة المراجعة بنجاح",
-        data: review
-      };
-    }
+    create: async (reviewData: Omit<Review, 'id' | 'reviewDate'>): Promise<ApiResponse<Review>> => {
+      try {
+        return await apiRequest('/reviews', {
+          method: 'POST',
+          body: JSON.stringify(reviewData),
+        });
+      } catch (error) {
+        // Mock response for development
+        return {
+          success: true,
+          message: "تمت إضافة المراجعة بنجاح",
+          data: {
+            id: Date.now().toString(),
+            reviewDate: new Date().toISOString(),
+            ...reviewData
+          } as Review
+        };
+      }
+    },
   },
 
-  // ========== خدمات الملف الشخصي ==========
+  // User profile endpoints
   profile: {
-    // تحديث البيانات الشخصية
-    update: async (userData: Partial<User>): Promise<ApiResponse<User>> => {
-      await delay(1000);
-      return {
-        success: true,
-        message: "تم تحديث البيانات بنجاح",
-        data: userData as User
-      };
+    update: async (userId: string, userData: Partial<User>): Promise<ApiResponse<User>> => {
+      try {
+        return await apiRequest(`/profile/${userId}`, {
+          method: 'PUT',
+          body: JSON.stringify(userData),
+        });
+      } catch (error) {
+        throw new Error('Failed to update profile');
+      }
     },
 
-    // تغيير كلمة المرور
-    changePassword: async (currentPassword: string, newPassword: string): Promise<ApiResponse<null>> => {
-      await delay(1000);
-      return {
-        success: true,
-        message: "تم تغيير كلمة المرور بنجاح"
-      };
-    }
-  }
+    changePassword: async (userId: string, passwords: { currentPassword: string; newPassword: string }): Promise<ApiResponse<null>> => {
+      try {
+        return await apiRequest(`/profile/${userId}/password`, {
+          method: 'PUT',
+          body: JSON.stringify(passwords),
+        });
+      } catch (error) {
+        throw new Error('Failed to change password');
+      }
+    },
+  },
 };

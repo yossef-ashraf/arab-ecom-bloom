@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useNavigate } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
   Star, 
@@ -14,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, useToast } from "@/contexts/CartContext";
 
 // Sample product data
 const productData = {
@@ -49,10 +48,10 @@ const productData = {
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [quantity, setQuantity] = useState(1);
-  const [activeImage, setActiveImage] = useState(0);
+  const navigate = useNavigate();
   const { addToCart } = useCart();
-  
+  const { toast } = useToast();
+
   // In a real app, you would fetch the product by id
   const product = productData;
   
@@ -69,7 +68,17 @@ const ProductDetail = () => {
   };
   
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (product) {
+      addToCart(product, quantity);
+      setQuantity(1);
+    }
+  };
+  
+  const handleBuyNow = () => {
+    if (product) {
+      addToCart(product, quantity);
+      navigate("/cart");
+    }
   };
   
   const discountPercentage = product.discount
@@ -81,22 +90,25 @@ const ProductDetail = () => {
       <Navbar />
       
       <main className="flex-grow py-8">
-        <div className="container mx-auto">
-          {/* Breadcrumbs */}
-          <div className="mb-6">
-            <nav className="flex text-sm text-gray-500">
-              <Link to="/" className="hover:text-bloom-gold">الرئيسية</Link>
-              <span className="mx-2">/</span>
-              <Link to={`/categories/${product.category.toLowerCase()}`} className="hover:text-bloom-gold">
-                {product.category}
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-gray-900">{product.name}</span>
-            </nav>
-          </div>
-          
-          {/* Product details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="container mx-auto px-4">
+          {/* Breadcrumb */}
+          <nav className="flex mb-8" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-2 space-x-reverse">
+              <li>
+                <Link to="/" className="text-gray-500 hover:text-gray-700">الرئيسية</Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link to={`/categories/${product.category}`} className="text-gray-500 hover:text-gray-700">
+                  {product.category}
+                </Link>
+              </li>
+              <li>/</li>
+              <li className="text-gray-900">{product.name}</li>
+            </ol>
+          </nav>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Product images */}
             <div>
               <div className="mb-4 aspect-square overflow-hidden rounded-lg bg-gray-100">

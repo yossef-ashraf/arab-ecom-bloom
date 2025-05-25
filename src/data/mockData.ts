@@ -1,22 +1,21 @@
 
-import { Book, User, Category, Governorate } from "@/types";
+import { Book, Category, User, Order, Review, Governorate } from '@/types';
 
-// كتب وهمية لمتجر الكتب المصري
 export const mockBooks: Book[] = [
   {
     id: "1",
     title: "الأسود يليق بك",
     author: "أحلام مستغانمي",
-    price: 80,
+    price: 120,
     discount: true,
-    discountPrice: 65,
+    discountPrice: 95,
     category: "روايات عربية",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
+    image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000",
     rating: 4.5,
-    description: "رواية رومانسية رائعة من أحلام مستغانمي تحكي قصة حب معقدة بين شخصيات عربية أصيلة",
-    isbn: "978-977-14-1234-5",
-    publisher: "دار الشروق",
-    publicationDate: "2023-01-15",
+    description: "رواية عربية رائعة تحكي قصة الحب والحياة في الجزائر خلال فترة الاستقلال",
+    isbn: "978-9777719636",
+    publisher: "دار الآداب",
+    publicationDate: "2010-01-01",
     language: "العربية",
     pageCount: 320,
     format: "pdf",
@@ -27,16 +26,16 @@ export const mockBooks: Book[] = [
     id: "2",
     title: "مئة عام من العزلة",
     author: "غابرييل غارسيا ماركيز",
-    price: 120,
+    price: 150,
     discount: false,
-    discountPrice: 120,
+    discountPrice: 150,
     category: "روايات عالمية",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000",
     rating: 4.8,
-    description: "تحفة الأدب العالمي المترجمة للعربية، رواية سحرية تحكي تاريخ عائلة بوينديا",
-    isbn: "978-977-14-5678-9",
-    publisher: "المركز الثقافي العربي",
-    publicationDate: "2023-02-20",
+    description: "رواية عالمية كلاسيكية من أدب أمريكا اللاتينية، تحكي قصة عائلة بوينديا",
+    isbn: "978-9770926543",
+    publisher: "دار المعارف",
+    publicationDate: "2015-03-15",
     language: "العربية",
     pageCount: 450,
     format: "epub",
@@ -45,199 +44,196 @@ export const mockBooks: Book[] = [
   },
   {
     id: "3",
-    title: "البخاري الصحيح",
-    author: "الإمام البخاري",
-    price: 150,
+    title: "فقه السيرة النبوية",
+    author: "محمد الغزالي",
+    price: 80,
     discount: true,
-    discountPrice: 130,
+    discountPrice: 65,
     category: "كتب دينية",
-    image: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400",
-    rating: 5.0,
-    description: "أصح كتاب بعد كتاب الله، مجموعة الأحاديث النبوية الصحيحة",
-    isbn: "978-977-14-9012-3",
-    publisher: "دار المعرفة",
-    publicationDate: "2023-03-10",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000",
+    rating: 4.9,
+    description: "دراسة معمقة في السيرة النبوية الشريفة من منظور فقهي",
+    isbn: "978-9775634258",
+    publisher: "دار الشروق",
+    publicationDate: "2018-06-10",
     language: "العربية",
-    pageCount: 800,
+    pageCount: 280,
     format: "pdf",
-    fileSize: "5.8 MB",
+    fileSize: "1.8 MB",
     inStock: true
   },
   {
     id: "4",
-    title: "فيزياء الكم للمبتدئين",
-    author: "د. أحمد زويل",
-    price: 95,
+    title: "تاريخ مصر الحديث",
+    author: "عبد الرحمن الرافعي",
+    price: 200,
     discount: false,
-    discountPrice: 95,
-    category: "كتب علمية",
-    image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400",
-    rating: 4.3,
-    description: "شرح مبسط لعلم فيزياء الكم من العالم المصري الحائز على نوبل",
-    isbn: "978-977-14-3456-7",
-    publisher: "دار النهضة العربية",
-    publicationDate: "2023-04-05",
+    discountPrice: 200,
+    category: "تاريخ",
+    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1000",
+    rating: 4.6,
+    description: "دراسة شاملة لتاريخ مصر منذ بداية القرن التاسع عشر",
+    isbn: "978-9774168371",
+    publisher: "مكتبة النهضة المصرية",
+    publicationDate: "2020-01-15",
     language: "العربية",
-    pageCount: 280,
+    pageCount: 520,
     format: "epub",
     fileSize: "4.1 MB",
     inStock: true
   },
   {
     id: "5",
-    title: "تاريخ مصر الحديث",
-    author: "د. محمد عبده",
-    price: 110,
+    title: "كتاب الطبخ المصري",
+    author: "نادية السباعي",
+    price: 90,
     discount: true,
-    discountPrice: 90,
-    category: "تاريخ",
-    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400",
-    rating: 4.6,
-    description: "دراسة شاملة لتاريخ مصر من القرن التاسع عشر حتى اليوم",
-    isbn: "978-977-14-7890-1",
-    publisher: "مكتبة الأنجلو المصرية",
-    publicationDate: "2023-05-15",
+    discountPrice: 75,
+    category: "كتب الطبخ",
+    image: "https://images.unsplash.com/photo-1589906168798-7c4963d3ed93?q=80&w=1000",
+    rating: 4.3,
+    description: "مجموعة شاملة من الوصفات المصرية التقليدية والحديثة",
+    isbn: "978-9773051842",
+    publisher: "دار الكتاب العربي",
+    publicationDate: "2019-09-20",
     language: "العربية",
-    pageCount: 520,
+    pageCount: 350,
     format: "pdf",
-    fileSize: "6.2 MB",
+    fileSize: "5.2 MB",
     inStock: true
   },
   {
     id: "6",
-    title: "الطبخ المصري الأصيل",
-    author: "الشيف نجلاء الشرشابي",
-    price: 70,
+    title: "1984",
+    author: "جورج أورويل",
+    price: 110,
     discount: false,
-    discountPrice: 70,
-    category: "كتب الطبخ",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
-    rating: 4.4,
-    description: "أشهى الوصفات المصرية التراثية والحديثة",
-    isbn: "978-977-14-2468-0",
-    publisher: "دار الحياة",
-    publicationDate: "2023-06-01",
+    discountPrice: 110,
+    category: "روايات عالمية",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1000",
+    rating: 4.7,
+    description: "رواية ديستوبية كلاسيكية تتنبأ بمستقبل مخيف للإنسانية",
+    isbn: "978-9770937412",
+    publisher: "دار التنوير",
+    publicationDate: "2017-04-25",
     language: "العربية",
-    pageCount: 200,
-    format: "epub",
-    fileSize: "3.5 MB",
+    pageCount: 380,
+    format: "mobi",
+    fileSize: "2.9 MB",
     inStock: true
   }
 ];
 
-// فئات الكتب
 export const mockCategories: Category[] = [
   {
     id: "1",
     name: "روايات عربية",
-    description: "أجمل الروايات العربية الحديثة والكلاسيكية",
-    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400",
+    description: "روايات من الأدب العربي الحديث والمعاصر",
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000",
     booksCount: 150
   },
   {
     id: "2",
     name: "كتب دينية",
-    description: "كتب التفسير والفقه والسيرة النبوية",
-    image: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400",
+    description: "كتب في العلوم الشرعية والدراسات الإسلامية",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000",
     booksCount: 200
   },
   {
     id: "3",
     name: "كتب علمية",
-    description: "كتب الفيزياء والكيمياء والرياضيات",
-    image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400",
-    booksCount: 100
+    description: "كتب في مختلف العلوم والتخصصات الأكاديمية",
+    image: "https://images.unsplash.com/photo-1532153354457-5fbe1a3bb0b4?q=80&w=1000",
+    booksCount: 180
   },
   {
     id: "4",
     name: "تاريخ",
-    description: "كتب التاريخ المصري والعربي والعالمي",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-    booksCount: 80
+    description: "كتب التاريخ والحضارة العربية والإسلامية",
+    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1000",
+    booksCount: 120
   },
   {
     id: "5",
     name: "كتب الطبخ",
-    description: "وصفات الطبخ المصري والعربي والعالمي",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
-    booksCount: 60
+    description: "كتب الطبخ والمأكولات الشعبية والعالمية",
+    image: "https://images.unsplash.com/photo-1589906168798-7c4963d3ed93?q=80&w=1000",
+    booksCount: 85
   },
   {
     id: "6",
     name: "روايات عالمية",
-    description: "أشهر الروايات العالمية المترجمة",
-    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400",
-    booksCount: 120
+    description: "روايات مترجمة من الأدب العالمي",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1000",
+    booksCount: 220
   }
 ];
 
-// المحافظات المصرية
 export const egyptianGovernorates: Governorate[] = [
   {
     id: "1",
     name: "القاهرة",
-    cities: ["مدينة نصر", "المعادي", "حلوان", "الجيزة", "العباسية", "الزمالك", "المقطم"]
+    cities: ["مدينة نصر", "المعادي", "حلوان", "التجمع الخامس", "العبور", "وسط البلد", "مصر الجديدة"]
   },
   {
-    id: "2",
+    id: "2", 
     name: "الجيزة",
-    cities: ["الدقي", "المهندسين", "فيصل", "أكتوبر", "الهرم", "إمبابة"]
+    cities: ["الدقي", "المهندسين", "العجوزة", "الهرم", "فيصل", "أكتوبر", "الشيخ زايد"]
   },
   {
     id: "3",
-    name: "الإسكندرية",
-    cities: ["المنتزه", "وسط البلد", "سموحة", "العجمي", "الأنفوشي", "المعمورة"]
+    name: "الإسكندرية", 
+    cities: ["وسط الإسكندرية", "سيدي بشر", "العجمي", "برج العرب", "كينج مريوط", "العامرية"]
   },
   {
     id: "4",
-    name: "الشرقية",
-    cities: ["الزقازيق", "بلبيس", "فاقوس", "أبو حماد", "منيا القمح"]
+    name: "البحيرة",
+    cities: ["دمنهور", "كفر الدوار", "رشيد", "إدكو", "الدلنجات", "كوم حمادة"]
   },
   {
     id: "5",
-    name: "البحيرة",
-    cities: ["دمنهور", "كفر الدوار", "رشيد", "إدكو", "أبو حمص"]
+    name: "الغربية",
+    cities: ["طنطا", "المحلة الكبرى", "كفر الزيات", "بسيون", "زفتى", "السنطة"]
   },
   {
     id: "6",
     name: "الدقهلية",
-    cities: ["المنصورة", "طلخا", "ميت غمر", "السنبلاوين", "دكرنس"]
+    cities: ["المنصورة", "طلخا", "دكرنس", "السنبلاوين", "منية النصر", "المطرية"]
   },
   {
     id: "7",
-    name: "كفر الشيخ",
-    cities: ["كفر الشيخ", "دسوق", "فوه", "بيلا", "قلين"]
+    name: "الشرقية",
+    cities: ["الزقازيق", "بلبيس", "مشتول السوق", "ههيا", "ديرب نجم", "كفر صقر"]
+  },
+  {
+    id: "8",
+    name: "القليوبية",
+    cities: ["بنها", "شبرا الخيمة", "القناطر الخيرية", "كفر شكر", "طوخ", "قليوب"]
+  },
+  {
+    id: "9",
+    name: "الفيوم",
+    cities: ["الفيوم", "سنورس", "إطسا", "طامية", "يوسف الصديق", "أبشواي"]
+  },
+  {
+    id: "10",
+    name: "بني سويف",
+    cities: ["بني سويف", "الواسطى", "ناصر", "ببا", "الفشن", "سمسطا"]
   }
 ];
 
-// مستخدمون وهميون
-export const users: User[] = [
-  {
-    id: "1",
-    firstName: "أحمد",
-    lastName: "محمد",
-    email: "ahmed@example.com",
-    phone: "01234567890",
-    governorate: "القاهرة",
-    city: "مدينة نصر",
-    address: "شارع مصطفى النحاس، مدينة نصر",
-    birthDate: "1990-05-15",
-    gender: "male",
-    createdAt: "2024-01-01T00:00:00Z",
-    isActive: true
-  },
-  {
-    id: "2",
-    firstName: "فاطمة",
-    lastName: "أحمد",
-    email: "fatma@example.com",
-    phone: "01098765432",
-    governorate: "الإسكندرية",
-    city: "سموحة",
-    address: "شارع سموحة، الإسكندرية",
-    birthDate: "1992-08-20",
-    gender: "female",
-    createdAt: "2024-01-15T00:00:00Z",
-    isActive: true
-  }
-];
+// Mock user for development
+export const mockUser: User = {
+  id: "1",
+  firstName: "أحمد",
+  lastName: "محمد",
+  email: "ahmed@example.com",
+  phone: "01012345678",
+  governorate: "القاهرة",
+  city: "المعادي", 
+  address: "شارع 9، المعادي",
+  birthDate: "1990-01-01",
+  gender: "male",
+  createdAt: "2024-01-01T00:00:00.000Z",
+  isActive: true
+};
