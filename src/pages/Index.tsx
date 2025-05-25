@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import HeroSlider from "@/components/home/HeroSlider";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import FeaturedBooks from "@/components/home/FeaturedBooks";
+import Products from "@/pages/Products";
 import PromoBanner from "@/components/home/PromoBanner";
 import Testimonials from "@/components/home/Testimonials";
 import Newsletter from "@/components/home/Newsletter";
@@ -14,13 +15,13 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
-        <HeroSlider />
-        <FeaturedCategories />
-        <FeaturedBooks />
-        <PromoBanner />
+        {/* <HeroSlider /> */}
+        {/* <FeaturedCategories /> */}
+        <Products />
+        {/* <PromoBanner /> */}
         <Features />
         <Testimonials />
-        <Newsletter />
+        {/* <Newsletter /> */}
       </main>
       <Footer />
     </div>
