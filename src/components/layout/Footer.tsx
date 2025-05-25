@@ -81,8 +81,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-center">
                 <MapPin size={18} className="ml-2 text-bloom-gold" />
-                <span className="text-gray-300">شارع الملك عبدالعزيز، الرياض، المملكة العربية السعودية</span>
-              </li>
+              <span className="text-gray-300">شارع الملك فيصل، الجيزة، مصر</span>              </li>
               <li className="flex items-center">
                 <Phone size={18} className="ml-2 text-bloom-gold" />
                 <span className="text-gray-300">+966 12 345 6789</span>
