@@ -1,5 +1,5 @@
 
-import { Book, Category, User, Order, Review, Governorate } from '@/types';
+import { Book, Category, User, Order, Governorate, Coupon, Area, Address } from '@/types';
 
 export const mockBooks: Book[] = [
   {
@@ -219,6 +219,160 @@ export const egyptianGovernorates: Governorate[] = [
     id: "10",
     name: "بني سويف",
     cities: ["بني سويف", "الواسطى", "ناصر", "ببا", "الفشن", "سمسطا"]
+  }
+];
+
+export const mockCoupons: Coupon[] = [
+  {
+    id: "1",
+    code: "WELCOME20",
+    type: "percentage",
+    value: 20,
+    minimumOrder: 100,
+    expiryDate: "2024-12-31",
+    isActive: true,
+    usageLimit: 1000,
+    usedCount: 250
+  },
+  {
+    id: "2",
+    code: "SAVE50",
+    type: "fixed",
+    value: 50,
+    minimumOrder: 200,
+    expiryDate: "2024-11-30",
+    isActive: true,
+    usageLimit: 500,
+    usedCount: 120
+  },
+  {
+    id: "3",
+    code: "STUDENT15",
+    type: "percentage",
+    value: 15,
+    minimumOrder: 80,
+    expiryDate: "2024-12-15",
+    isActive: true,
+    usageLimit: 2000,
+    usedCount: 890
+  }
+];
+
+export const mockAreas: Area[] = [
+  {
+    id: "1",
+    name: "مدينة نصر",
+    governorate: "القاهرة",
+    shippingCost: 15
+  },
+  {
+    id: "2",
+    name: "المعادي",
+    governorate: "القاهرة",
+    shippingCost: 20
+  },
+  {
+    id: "3",
+    name: "الدقي",
+    governorate: "الجيزة",
+    shippingCost: 18
+  },
+  {
+    id: "4",
+    name: "وسط الإسكندرية",
+    governorate: "الإسكندرية",
+    shippingCost: 25
+  },
+  {
+    id: "5",
+    name: "طنطا",
+    governorate: "الغربية",
+    shippingCost: 30
+  }
+];
+
+export const mockAddresses: Address[] = [
+  {
+    id: "1",
+    userId: "1",
+    name: "المنزل",
+    phone: "01012345678",
+    governorate: "القاهرة",
+    city: "المعادي",
+    area: "المعادي الجديدة",
+    street: "شارع 9",
+    building: "رقم 15",
+    floor: "الثالث",
+    apartment: "شقة 7",
+    isDefault: true
+  },
+  {
+    id: "2",
+    userId: "1",
+    name: "العمل",
+    phone: "01012345678",
+    governorate: "الجيزة",
+    city: "الدقي",
+    area: "وسط الدقي",
+    street: "شارع التحرير",
+    building: "برج النيل",
+    floor: "الخامس",
+    apartment: "مكتب 12",
+    isDefault: false
+  }
+];
+
+export const mockOrders: Order[] = [
+  {
+    id: "1",
+    userId: "1",
+    orderDate: "2024-01-15T10:30:00.000Z",
+    status: "delivered",
+    totalAmount: 285,
+    items: [
+      {
+        ...mockBooks[0],
+        quantity: 2
+      },
+      {
+        ...mockBooks[1],
+        quantity: 1
+      }
+    ],
+    shippingAddress: {
+      governorate: "القاهرة",
+      city: "المعادي",
+      address: "شارع 9، رقم 15، شقة 7",
+      phone: "01012345678"
+    },
+    paymentMethod: "vodafone_cash",
+    paymentStatus: "paid",
+    notes: "يرجى الاتصال قبل التسليم"
+  },
+  {
+    id: "2",
+    userId: "1",
+    orderDate: "2024-01-20T14:15:00.000Z",
+    status: "pending",
+    totalAmount: 145,
+    items: [
+      {
+        ...mockBooks[2],
+        quantity: 1
+      },
+      {
+        ...mockBooks[4],
+        quantity: 1
+      }
+    ],
+    shippingAddress: {
+      governorate: "الجيزة",
+      city: "الدقي",
+      address: "شارع التحرير، برج النيل، مكتب 12",
+      phone: "01012345678"
+    },
+    paymentMethod: "cash",
+    paymentStatus: "pending"
   }
 ];
 

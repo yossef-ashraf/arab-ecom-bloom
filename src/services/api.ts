@@ -4,14 +4,16 @@ import {
   User, 
   Order, 
   Category, 
-  Review, 
   LoginRequest, 
   RegisterRequest, 
   AuthResponse, 
   ApiResponse, 
   SearchFilters, 
   PaginationParams, 
-  PaginatedResponse 
+  PaginatedResponse,
+  Coupon,
+  Area,
+  Address
 } from '@/types';
 
 const BASE_URL = 'http://localhost:3000/api';
@@ -373,39 +375,6 @@ export const api = {
     },
   },
 
-  // Reviews endpoints
-  reviews: {
-    getByBookId: async (bookId: string): Promise<Review[]> => {
-      try {
-        const response = await apiRequest(`/reviews/book/${bookId}`);
-        return response.data || response;
-      } catch (error) {
-        // Mock response for development
-        return [];
-      }
-    },
-
-    create: async (reviewData: Omit<Review, 'id' | 'reviewDate'>): Promise<ApiResponse<Review>> => {
-      try {
-        return await apiRequest('/reviews', {
-          method: 'POST',
-          body: JSON.stringify(reviewData),
-        });
-      } catch (error) {
-        // Mock response for development
-        return {
-          success: true,
-          message: "تمت إضافة المراجعة بنجاح",
-          data: {
-            id: Date.now().toString(),
-            reviewDate: new Date().toISOString(),
-            ...reviewData
-          } as Review
-        };
-      }
-    },
-  },
-
   // User profile endpoints
   profile: {
     update: async (userId: string, userData: Partial<User>): Promise<ApiResponse<User>> => {
@@ -427,6 +396,91 @@ export const api = {
         });
       } catch (error) {
         throw new Error('Failed to change password');
+      }
+    },
+  },
+
+  // Coupons endpoints
+  coupons: {
+    validate: async (code: string): Promise<ApiResponse<Coupon>> => {
+      try {
+        return await apiRequest(`/coupons/validate/${code}`);
+      } catch (error) {
+        throw new Error('Invalid coupon code');
+      }
+    },
+
+    getAll: async (): Promise<Coupon[]> => {
+      try {
+        const response = await apiRequest('/coupons');
+        return response.data || response;
+      } catch (error) {
+        return [];
+      }
+    },
+  },
+
+  // Areas endpoints
+  areas: {
+    getAll: async (): Promise<Area[]> => {
+      try {
+        const response = await apiRequest('/areas');
+        return response.data || response;
+      } catch (error) {
+        return [];
+      }
+    },
+
+    getByGovernorate: async (governorate: string): Promise<Area[]> => {
+      try {
+        const response = await apiRequest(`/areas/governorate/${governorate}`);
+        return response.data || response;
+      } catch (error) {
+        return [];
+      }
+    },
+  },
+
+  // Addresses endpoints
+  addresses: {
+    getByUserId: async (userId: string): Promise<Address[]> => {
+      try {
+        const response = await apiRequest(`/addresses/user/${userId}`);
+        return response.data || response;
+      } catch (error) {
+        return [];
+      }
+    },
+
+    create: async (addressData: Omit<Address, 'id'>): Promise<ApiResponse<Address>> => {
+      try {
+        return await apiRequest('/addresses', {
+          method: 'POST',
+          body: JSON.stringify(addressData),
+        });
+      } catch (error) {
+        throw new Error('Failed to create address');
+      }
+    },
+
+    update: async (id: string, addressData: Partial<Address>): Promise<ApiResponse<Address>> => {
+      try {
+        return await apiRequest(`/addresses/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(addressData),
+        });
+      } catch (error) {
+        throw new Error('Failed to update address');
+      }
+    },
+
+    delete: async (id: string): Promise<ApiResponse<null>> => {
+      try {
+        return await apiRequest(`/addresses/${id}`, {
+          method: 'DELETE',
+        });
+      } catch (error) {
+        throw new Error('Failed to delete address');
       }
     },
   },
