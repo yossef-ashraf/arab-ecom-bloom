@@ -4,14 +4,8 @@ import { useParams } from 'react-router-dom';
 import { getProductsByCategory } from '../services/api';
 import BookCard from '../components/product/BookCard';
 import { Book } from '../types';
-
-type Product = {
-  id: number;
-  slug: string;
-  price: number;
-  sale_price: number;
-  stock_status: string;
-};
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const Products = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -50,10 +44,14 @@ const Products = () => {
 
 
   return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
       {books.map((book) => (
         <BookCard key={book.id} book={book} />
       ))}
+    </div>
+      <Footer />
     </div>
   );
 };
