@@ -1,15 +1,16 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search, ShoppingCart, Menu, User, X, Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCategories } from '@/services/api'; 
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState([]); 
   const { cartItems } = useCart();
   const { user, isAuthenticated } = useAuth();
 
@@ -17,14 +18,18 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const categories = [
-    { id: 1, name: "روايات عربية", slug: "arabic-novels" },
-    { id: 2, name: "كتب دينية", slug: "religious-books" },
-    { id: 3, name: "كتب علمية", slug: "science-books" },
-    { id: 4, name: "تاريخ", slug: "history" },
-    { id: 5, name: "كتب الطبخ", slug: "cooking-books" },
-    { id: 6, name: "روايات عالمية", slug: "world-novels" },
-  ];
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const data = await getCategories();
+        console.log(data);
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   return (
     <nav className="bg-white py-4 shadow-md sticky top-0 z-50">
@@ -38,19 +43,19 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 space-x-reverse">
-            {categories.map((category) => (
+            {categories.slice(0, 7).map((category) => (
               <Link
                 key={category.id}
-                to={`/categories/${category.slug}`}
+                to={`/categories/${category.id}`}
                 className="text-gray-700 hover:text-amber-600 transition-colors"
               >
-                {category.name}
+                {category.data}
               </Link>
             ))}
           </div>
 
           {/* Search */}
-          <div className="hidden md:flex items-center max-w-md w-full mx-4">
+          {/* <div className="hidden md:flex items-center max-w-md w-full mx-4">
             <div className="relative w-full">
               <Input
                 type="text"
@@ -61,7 +66,7 @@ const Navbar = () => {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
-          </div>
+          </div> */}
 
           {/* Right Icons */}
           <div className="flex items-center space-x-4 space-x-reverse">
@@ -75,7 +80,7 @@ const Navbar = () => {
                 <User size={24} />
               </Link>
             )}
-            
+
             <Link to="/cart" className="text-gray-700 hover:text-amber-600 relative">
               <ShoppingCart size={24} />
               {cartItems.length > 0 && (
@@ -84,7 +89,7 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
-            
+
             <button
               className="md:hidden text-gray-700 focus:outline-none"
               onClick={toggleMenu}
@@ -111,7 +116,7 @@ const Navbar = () => {
             </div>
 
             <div className="flex flex-col space-y-4">
-              {categories.map((category) => (
+              {categories.slice(0, 5).map((category) => (
                 <Link
                   key={category.id}
                   to={`/categories/${category.slug}`}

@@ -4,29 +4,30 @@ import { Truck, Shield, CreditCard, RotateCcw } from "lucide-react";
 const features = [
   {
     id: 1,
-    title: "شحن سريع",
-    description: "شحن سريع ومجاني للطلبات التي تزيد عن 200 ر.س",
+    title: "شحن موثوق",
+    description: "نحرص على توصيل طلباتك بسرعة وكفاءة",
     icon: Truck,
   },
   {
     id: 2,
     title: "دفع آمن",
-    description: "طرق دفع متعددة وآمنة لحماية معلوماتك",
+    description: "خيارات دفع مريحة وآمنة لحماية بياناتك",
     icon: CreditCard,
   },
   {
     id: 3,
-    title: "ضمان الجودة",
-    description: "جميع منتجاتنا أصلية ومضمونة الجودة",
+    title: "جودة مضمونة",
+    description: "نقدم لك منتجات منتقاة بعناية ومعايير عالية",
     icon: Shield,
   },
   {
     id: 4,
-    title: "سهولة الإرجاع",
-    description: "إرجاع مجاني خلال 14 يوماً من الاستلام",
+    title: "تجربة سهلة",
+    description: "إجراءات مرنة تضمن راحتك من التصفح وحتى الإرجاع",
     icon: RotateCcw,
   },
 ];
+
 
 const Features = () => {
   return (

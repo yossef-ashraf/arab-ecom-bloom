@@ -1,41 +1,51 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const slides = [
+interface Slide {
+  id: number;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  image: string;
+  bgColor: string;
+}
+
+const defaultSlides = [
   {
     id: 1,
-    title: "تخفيضات الصيف الكبرى",
-    subtitle: "خصم يصل إلى 50% على جميع المنتجات",
-    buttonText: "تسوق الآن",
-    buttonLink: "/categories/offers",
-    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop",
+    title: "مرحبًا بك في عالم الكتب",
+    subtitle: "سجل دخولك الآن للوصول إلى مكتبتك الشخصية وتتبع طلباتك",
+    buttonText: "تسجيل الدخول",
+    buttonLink: "/login",
+    image: "https://images.unsplash.com/photo-1611078489935-0cb964deb7af?q=80&w=2070&auto=format&fit=crop",
     bgColor: "bg-bloom-navy",
   },
   {
     id: 2,
-    title: "أحدث المنتجات",
-    subtitle: "اكتشف وصول منتجات جديدة",
-    buttonText: "استكشف",
-    buttonLink: "/categories/new-arrivals",
-    image: "https://images.unsplash.com/photo-1607083206968-13611e3d76db?q=80&w=2030&auto=format&fit=crop",
+    title: "حسابك الشخصي",
+    subtitle: "أدار طلباتك، عناوينك، وطرق الدفع الخاصة بك",
+    buttonText: "عرض الملف الشخصي",
+    buttonLink: "/profile",
+    image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2070&auto=format&fit=crop",
     bgColor: "bg-bloom-teal",
   },
   {
     id: 3,
-    title: "هدايا مميزة",
-    subtitle: "لحظات خاصة تستحق أفضل الهدايا",
-    buttonText: "تصفح الهدايا",
-    buttonLink: "/categories/gifts",
-    image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=2040&auto=format&fit=crop",
+    title: "انضم إلينا اليوم",
+    subtitle: "أنشئ حسابك الجديد واستمتع بمزايا حصرية",
+    buttonText: "إنشاء حساب",
+    buttonLink: "/register",
+    image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop",
     bgColor: "bg-bloom-coral",
   },
 ];
 
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [slides] = useState<Slide[]>(defaultSlides);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -51,7 +61,7 @@ const HeroSlider = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [slides]);
 
   return (
     <div className="relative h-[500px] overflow-hidden">
