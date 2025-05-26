@@ -1,11 +1,12 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Book } from "lucide-react";
+import { api } from "@/services/api"; // Import the API module
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,19 +15,52 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    const success = await login(formData);
-    
-    if (success) {
+
+    try {
+      // Validate inputs
+      if (!formData.email || !formData.password) {
+        toast({
+          title: "خطأ",
+          description: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Call API directly
+      const response = await api.auth.login({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Store token and user data via AuthContext
+      await login({
+        user: response.data.user,
+        token: response.data.access_token,
+      });
+
+      toast({
+        title: "نجاح",
+        description: response.message || "تم تسجيل الدخول بنجاح",
+      });
+
       navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل تسجيل الدخول، يرجى التحقق من البيانات",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (

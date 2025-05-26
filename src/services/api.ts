@@ -1,11 +1,9 @@
 import { 
   Book, 
-  User, 
   Order, 
   Category, 
   LoginRequest, 
   RegisterRequest, 
-  AuthResponse, 
   ApiResponse, 
   SearchFilters, 
   PaginationParams, 
@@ -15,7 +13,7 @@ import {
   Address
 } from '@/types';
 
-const BASE_URL = 'http://127.0.0.1:3000/api/';
+const BASE_URL = 'http://localhost:8000/api/';
 
 // Mock data for development (will be replaced with real API calls)
 // api.ts
@@ -106,106 +104,77 @@ const mockCategories: Category[] = [
   }
 ];
 
-// API helper functions
+// Define types to match Postman collection
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  gender: 'male' | 'female';
+  date_of_birth: string;
+  created_at: string;
+  updated_at: string;
+  email_verified_at?: string | null;
+}
+
+interface AuthResponse {
+  status: string;
+  message: string;
+  data: {
+    user: User;
+    access_token: string;
+    token_type: string;
+  };
+}
+
+// API helper function
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...options.headers,
     },
     ...options,
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    throw new Error(data.message || `HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  return data;
 };
 
 export const api = {
   // Authentication endpoints
   auth: {
     login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-      try {
-        return await apiRequest('/auth/login', {
-          method: 'POST',
-          body: JSON.stringify(credentials),
-        });
-      } catch (error) {
-        // Mock response for development
-        return {
-          success: true,
-          message: "تم تسجيل الدخول بنجاح",
-          data: {
-            user: {
-              id: "1",
-              firstName: "أحمد",
-              lastName: "محمد",
-              email: credentials.email,
-              phone: "01012345678",
-              governorate: "القاهرة",
-              city: "المعادي",
-              address: "شارع 9",
-              birthDate: "1990-01-01",
-              gender: "male",
-              createdAt: new Date().toISOString(),
-              isActive: true
-            },
-            token: "mock-jwt-token"
-          }
-        };
-      }
+      return await apiRequest('login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
     },
 
     register: async (userData: RegisterRequest): Promise<AuthResponse> => {
-      try {
-        return await apiRequest('/auth/register', {
-          method: 'POST',
-          body: JSON.stringify(userData),
-        });
-      } catch (error) {
-        // Mock response for development
-        return {
-          success: true,
-          message: "تم إنشاء الحساب بنجاح",
-          data: {
-            user: {
-              id: "1",
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              email: userData.email,
-              phone: userData.phone,
-              governorate: userData.governorate,
-              city: userData.city,
-              address: userData.address,
-              birthDate: userData.birthDate,
-              gender: userData.gender,
-              createdAt: new Date().toISOString(),
-              isActive: true
-            },
-            token: "mock-jwt-token"
-          }
-        };
-      }
+      return await apiRequest('register', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
     },
 
-    logout: async (): Promise<ApiResponse<null>> => {
-      try {
-        return await apiRequest('/auth/logout', { method: 'POST' });
-      } catch (error) {
-        return { success: true, message: "تم تسجيل الخروج بنجاح" };
-      }
+    logout: async (token: string): Promise<ApiResponse<null>> => {
+      return await apiRequest('logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
     },
 
     verifyToken: async (token: string): Promise<ApiResponse<User>> => {
-      try {
-        return await apiRequest('/auth/verify', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch (error) {
-        throw new Error('Token verification failed');
-      }
+      return await apiRequest('user', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
     },
   },
 
@@ -224,7 +193,7 @@ export const api = {
           queryParams.append('limit', pagination.limit.toString());
         }
 
-        return await apiRequest(`/books?${queryParams}`);
+        return await apiRequest(`products?${queryParams}`);
       } catch (error) {
         // Mock response for development
         return {
@@ -243,7 +212,7 @@ export const api = {
 
     getFeatured: async (): Promise<Book[]> => {
       try {
-        const response = await apiRequest('/books/featured');
+        const response = await apiRequest('products/featured');
         return response.data || response;
       } catch (error) {
         // Mock response for development
@@ -253,7 +222,7 @@ export const api = {
 
     getById: async (id: string): Promise<Book> => {
       try {
-        const response = await apiRequest(`/books/${id}`);
+        const response = await apiRequest(`products/${id}`);
         return response.data || response;
       } catch (error) {
         // Mock response for development
@@ -271,7 +240,7 @@ export const api = {
           queryParams.append('limit', pagination.limit.toString());
         }
 
-        return await apiRequest(`/books/category?${queryParams}`);
+        return await apiRequest(`products/category?${queryParams}`);
       } catch (error) {
         // Mock response for development
         const categoryBooks = mockBooks.filter(book => book.category === category);
@@ -302,7 +271,7 @@ export const api = {
           queryParams.append('limit', pagination.limit.toString());
         }
 
-        return await apiRequest(`/books/search?${queryParams}`);
+        return await apiRequest(`products/search?${queryParams}`);
       } catch (error) {
         // Mock response for development
         const searchResults = mockBooks.filter(book => 
