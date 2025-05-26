@@ -1,4 +1,3 @@
-
 import { 
   Book, 
   User, 
@@ -94,6 +93,7 @@ const mockCategories: Category[] = [
     name: "روايات عربية",
     description: "روايات من الأدب العربي الحديث",
     image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000",
+    itemCount: 150,
     booksCount: 150
   },
   {
@@ -101,6 +101,7 @@ const mockCategories: Category[] = [
     name: "كتب دينية",
     description: "كتب في العلوم الشرعية والدراسات الإسلامية",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000",
+    itemCount: 200,
     booksCount: 200
   }
 ];
