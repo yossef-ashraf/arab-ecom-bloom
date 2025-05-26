@@ -32,6 +32,14 @@ export const getProductsByCategory = async (categoryId: number) => {
   return json.data.products;
 };
 
+export const getProductsById = async (productId: number) => {
+  const res = await fetch(`http://127.0.0.1:8000/api/products/${productId}`);
+  if (!res.ok) throw new Error(`Failed to fetch products ${productId}`);
+  const json = await res.json();
+  console.log(json.data)
+  return json.data;
+};
+
 export const getCategories = async () => {
   const res = await fetch('http://127.0.0.1:8000/api/categories/');
   if (!res.ok) throw new Error('Failed to fetch products');
