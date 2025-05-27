@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/services/api";
 
 interface User {
   id: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  phone: string;
+  gender: 'male' | 'female';
+  date_of_birth: string;
 }
 
 interface ProfileInfoProps {
@@ -19,13 +22,11 @@ interface ProfileInfoProps {
 const ProfileInfo = ({ user }: ProfileInfoProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
+    name: user?.name || "",
     email: user?.email || "",
-    phone: "",
-    address: "",
-    city: "",
-    zipCode: "",
+    phone: user?.phone || "",
+    gender: user?.gender || "male",
+    date_of_birth: user?.date_of_birth?.split('T')[0] || ""
   });
   const { toast } = useToast();
 
@@ -34,16 +35,24 @@ const ProfileInfo = ({ user }: ProfileInfoProps) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // هنا سيتم إرسال البيانات إلى الخادم (تمثيل فقط)
-    setTimeout(() => {
+    try {
+      const response = await api.profile.update('',formData);
+      // if (response.status === "Success") {
+      //   toast({
+      //     title: "تم التحديث",
+      //     description: "تم تحديث بياناتك بنجاح",
+      //   });
+      //   setIsEditing(false);
+      // }
+    } catch (error) {
       toast({
-        title: "تم تحديث البيانات",
-        description: "تم تحديث بياناتك الشخصية بنجاح",
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث البيانات",
+        variant: "destructive",
       });
-      setIsEditing(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -62,23 +71,11 @@ const ProfileInfo = ({ user }: ProfileInfoProps) => {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
-            <Label htmlFor="firstName">الاسم الأول</Label>
+            <Label htmlFor="name">الاسم</Label>
             <Input
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              readOnly={!isEditing}
-              className={!isEditing ? "bg-gray-50" : ""}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="lastName">الاسم الأخير</Label>
-            <Input
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               readOnly={!isEditing}
               className={!isEditing ? "bg-gray-50" : ""}
@@ -92,8 +89,7 @@ const ProfileInfo = ({ user }: ProfileInfoProps) => {
               name="email"
               type="email"
               value={formData.email}
-              onChange={handleChange}
-              readOnly={true} // لا يمكن تغيير البريد الإلكتروني
+              readOnly={true}
               className="bg-gray-50"
             />
           </div>
@@ -107,44 +103,18 @@ const ProfileInfo = ({ user }: ProfileInfoProps) => {
               onChange={handleChange}
               readOnly={!isEditing}
               className={!isEditing ? "bg-gray-50" : ""}
-              placeholder="05xxxxxxxx"
-            />
-          </div>
-        </div>
-
-        <h3 className="text-xl font-semibold mb-4 mt-8 text-bloom-navy">عنوان الشحن</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="address">العنوان</Label>
-            <Input
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              readOnly={!isEditing}
-              className={!isEditing ? "bg-gray-50" : ""}
-              placeholder="الشارع، المبنى، الشقة"
+              placeholder="+20xxxxxxxxxx"
+              dir="ltr"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="city">المدينة</Label>
+            <Label htmlFor="date_of_birth">تاريخ الميلاد</Label>
             <Input
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              readOnly={!isEditing}
-              className={!isEditing ? "bg-gray-50" : ""}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="zipCode">الرمز البريدي</Label>
-            <Input
-              id="zipCode"
-              name="zipCode"
-              value={formData.zipCode}
+              id="date_of_birth"
+              name="date_of_birth"
+              type="date"
+              value={formData.date_of_birth}
               onChange={handleChange}
               readOnly={!isEditing}
               className={!isEditing ? "bg-gray-50" : ""}

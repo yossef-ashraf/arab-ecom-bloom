@@ -51,7 +51,7 @@ const Login = () => {
         description: response.message || "تم تسجيل الدخول بنجاح",
       });
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "خطأ",
