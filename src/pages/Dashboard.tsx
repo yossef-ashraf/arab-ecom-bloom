@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { User, Package } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,24 @@ import { useAuth } from "@/contexts/AuthContext";
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const { user } = useAuth();
+
+  // Mock user data if not available
+  const mockUser = {
+    id: "1",
+    firstName: "أحمد",
+    lastName: "محمد",
+    email: "ahmed@example.com",
+    phone: "01234567890",
+    governorate: "القاهرة",
+    city: "مدينة نصر",
+    address: "شارع عباس العقاد",
+    birthDate: "1990-01-01",
+    gender: "male" as const,
+    createdAt: "2024-01-01",
+    isActive: true
+  };
+
+  const currentUser = user || mockUser;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -32,11 +51,11 @@ const Dashboard = () => {
             </TabsList>
 
             <TabsContent value="profile">
-              <ProfileInfo user={user} />
+              <ProfileInfo user={currentUser} />
             </TabsContent>
 
             <TabsContent value="orders">
-              <OrderHistory />
+              <OrderHistory user={currentUser} />
             </TabsContent>
           </Tabs>
         </div>
