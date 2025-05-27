@@ -15,8 +15,8 @@ const Categories = () => {
         const mapped: Category[] = categories.map((category: any) => ({
           id: category.id,
           name: category.data || 'غير مصنف',
-          image: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2030&auto=format&fit=crop",
-          itemCount:3
+          image: category.image_url || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2030&auto=format&fit=crop",
+          itemCount:  category.items_count || 3
         }));
 
         setCategories(mapped);
