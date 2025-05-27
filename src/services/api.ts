@@ -12,6 +12,7 @@ import {
   Area,
   Address
 } from '@/types';
+import Cookies from 'js-cookie';
 
 const BASE_URL = 'http://localhost:8000/api/';
 
@@ -159,20 +160,40 @@ export const api = {
   // Authentication endpoints
   auth: {
     login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-      return await apiRequest('login', {
+      const response = await apiRequest('login', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
+      
+      // حفظ البيانات في cookies
+      if (response.data && response.data.access_token && response.data.user) {
+        Cookies.set('access_token', response.data.access_token, { expires: 7 }); // تنتهي بعد 7 أيام
+        Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 }); // تنتهي بعد 7 أيام
+      }
+      
+      return response;
     },
 
     register: async (userData: RegisterRequest): Promise<AuthResponse> => {
-      return await apiRequest('register', {
+      const response = await apiRequest('register', {
         method: 'POST',
         body: JSON.stringify(userData),
       });
+      
+      // حفظ البيانات في cookies
+      if (response.data && response.data.access_token && response.data.user) {
+        Cookies.set('access_token', response.data.access_token, { expires: 7 }); // تنتهي بعد 7 أيام
+        Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 }); // تنتهي بعد 7 أيام
+      }
+      
+      return response;
     },
 
     logout: async (token: string): Promise<ApiResponse<null>> => {
+      // حذف البيانات من cookies عند تسجيل الخروج
+      Cookies.remove('access_token');
+      Cookies.remove('user');
+      
       return await apiRequest('logout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -381,10 +402,11 @@ export const api = {
 
   // User profile endpoints
   profile: {
-    update: async (userId: string, userData: Partial<User>): Promise<ApiResponse<User>> => {
+    update: async (token: string, userData: Partial<User>): Promise<ApiResponse<User>> => {
       try {
-        return await apiRequest(`/profile/${userId}`, {
-          method: 'PUT',
+        return await apiRequest(`/user/update-profile`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
           body: JSON.stringify(userData),
         });
       } catch (error) {
