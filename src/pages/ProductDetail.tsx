@@ -41,7 +41,7 @@ const ProductDetail = () => {
             discountPrice: data.sale_price,
             category: data.categories?.[0]?.data ?? "غير مصنف",
             image:
-              data.image ??
+              data.image_url ??
               "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000",
             rating: 4.5, // default if backend doesn't provide rating
             description: data.description ?? "لا يوجد وصف",
