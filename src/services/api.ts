@@ -9,6 +9,7 @@ import {
   PaginationParams, 
   PaginatedResponse,
   Coupon,
+  CouponValidationResponse,
   Area,
   Address
 } from '@/types';
@@ -428,9 +429,13 @@ export const api = {
 
   // Coupons endpoints
   coupons: {
-    validate: async (code: string): Promise<ApiResponse<Coupon>> => {
+    validate: async (code: string, orderAmount: number): Promise<CouponValidationResponse> => {
       try {
-        return await apiRequest(`/coupons/validate/${code}`);
+        const response = await apiRequest('coupons/validate', {
+          method: 'POST',
+          body: JSON.stringify({ code, order_amount: orderAmount }),
+        });
+        return response;
       } catch (error) {
         throw new Error('Invalid coupon code');
       }

@@ -1,4 +1,3 @@
-
 // أنواع البيانات الأساسية للكتب الإلكترونية
 export interface Book {
   id: string;
@@ -72,15 +71,30 @@ export interface Category {
 
 // أنواع بيانات الكوبونات
 export interface Coupon {
-  id: string;
+  id: number;
+  name: string;
   code: string;
-  type: 'percentage' | 'fixed';
-  value: number;
-  minimumOrder: number;
-  expiryDate: string;
-  isActive: boolean;
-  usageLimit: number;
-  usedCount: number;
+  discount_value: number;
+  discount_type: 'percentage' | 'fixed';
+  valid_from: string;
+  valid_to: string;
+  is_active: boolean;
+  usage_limit: number;
+  usage_count: number;
+  min_order_amount: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface CouponValidationResponse {
+  status: string;
+  message: string;
+  data: {
+    coupon: Coupon;
+    discount: number;
+    final_amount: number;
+  };
 }
 
 // أنواع بيانات المناطق والعناوين

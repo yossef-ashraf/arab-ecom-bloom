@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowLeft } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/layout/Navbar";
@@ -9,13 +8,24 @@ import Footer from "@/components/layout/Footer";
 import { useCart } from "@/contexts/CartContext";
 
 const Cart = () => {
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
+  const { 
+    cartItems, 
+    removeFromCart, 
+    updateQuantity, 
+    getCartTotal, 
+    clearCart,
+    applyCoupon,
+    removeCoupon,
+    coupon,
+    discount,
+    finalAmount
+  } = useCart();
   const [couponCode, setCouponCode] = useState("");
   
   const isEmpty = cartItems.length === 0;
   const subtotal = getCartTotal();
   const shipping = subtotal > 200 ? 0 : 20;
-  const total = subtotal + shipping;
+  const total = coupon ? finalAmount + shipping : subtotal + shipping;
   
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     updateQuantity(productId, newQuantity);
@@ -23,6 +33,13 @@ const Cart = () => {
   
   const handleRemoveItem = (productId: string) => {
     removeFromCart(productId);
+  };
+
+  const handleApplyCoupon = async () => {
+    if (couponCode.trim()) {
+      await applyCoupon(couponCode);
+      setCouponCode("");
+    }
   };
 
   return (
@@ -150,11 +167,53 @@ const Cart = () => {
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <h2 className="text-xl font-bold text-blue-900 mb-6">ملخص الطلب</h2>
                   
+                  <div className="mb-6">
+                    {coupon ? (
+                      <div className="bg-green-50 p-4 rounded-md">
+                        <div className="flex justify-between items-center mb-2">
+                          <div>
+                            <p className="font-medium text-green-800">{coupon.name}</p>
+                            <p className="text-sm text-green-600">الخصم: {discount} جنيه</p>
+                          </div>
+                          <button
+                            onClick={removeCoupon}
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex mb-3">
+                        <input
+                          type="text"
+                          placeholder="كود الخصم"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          className="flex-1 border border-gray-300 rounded-r-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+                        />
+                        <Button
+                          className="bg-amber-600 text-white rounded-l-md rounded-r-none hover:bg-amber-700"
+                          disabled={!couponCode}
+                          onClick={handleApplyCoupon}
+                        >
+                          تطبيق
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
                       <span className="text-gray-600">المجموع الفرعي</span>
                       <span className="font-medium">{subtotal} جنيه</span>
                     </div>
+                    {coupon && (
+                      <div className="flex justify-between text-green-600">
+                        <span>الخصم</span>
+                        <span className="font-medium">-{discount} جنيه</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-gray-600">الشحن</span>
                       <span className="font-medium">
@@ -174,24 +233,6 @@ const Cart = () => {
                         أنت مؤهل للشحن المجاني!
                       </div>
                     )}
-                  </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex mb-3">
-                      <input
-                        type="text"
-                        placeholder="كود الخصم"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        className="flex-1 border border-gray-300 rounded-r-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
-                      />
-                      <Button
-                        className="bg-amber-600 text-white rounded-l-md rounded-r-none hover:bg-amber-700"
-                        disabled={!couponCode}
-                      >
-                        تطبيق
-                      </Button>
-                    </div>
                   </div>
                   
                   <Button

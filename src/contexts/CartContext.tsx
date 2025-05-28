@@ -1,7 +1,7 @@
-
 import { createContext, useState, useContext, ReactNode } from "react";
-import { Book, CartItem } from "@/types";
+import { Book, CartItem, Coupon, CouponValidationResponse } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/services/api";
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -11,6 +11,11 @@ interface CartContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartCount: () => number;
+  applyCoupon: (code: string) => Promise<void>;
+  removeCoupon: () => void;
+  coupon: Coupon | null;
+  discount: number;
+  finalAmount: number;
 }
 
 const CartContext = createContext<CartContextType>({
@@ -21,12 +26,20 @@ const CartContext = createContext<CartContextType>({
   clearCart: () => {},
   getCartTotal: () => 0,
   getCartCount: () => 0,
+  applyCoupon: async () => {},
+  removeCoupon: () => {},
+  coupon: null,
+  discount: 0,
+  finalAmount: 0,
 });
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [coupon, setCoupon] = useState<Coupon | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [finalAmount, setFinalAmount] = useState(0);
   const { toast } = useToast();
 
   const addToCart = (book: Book, quantity = 1) => {
@@ -102,6 +115,41 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const applyCoupon = async (code: string) => {
+    try {
+      const subtotal = getCartTotal();
+      const response = await api.coupons.validate(code, subtotal);
+      
+      if (response.status === "Success") {
+        setCoupon(response.data.coupon);
+        setDiscount(response.data.discount);
+        setFinalAmount(response.data.final_amount);
+        
+        toast({
+          title: "تم تطبيق الكوبون",
+          description: `تم تطبيق كوبون الخصم بنجاح`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "كود الكوبون غير صالح",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    setDiscount(0);
+    setFinalAmount(0);
+    
+    toast({
+      title: "تم إزالة الكوبون",
+      description: "تم إزالة كوبون الخصم من الطلب",
+    });
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -112,6 +160,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         clearCart,
         getCartTotal,
         getCartCount,
+        applyCoupon,
+        removeCoupon,
+        coupon,
+        discount,
+        finalAmount,
       }}
     >
       {children}
