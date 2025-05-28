@@ -1,63 +1,109 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, Loader2 } from "lucide-react";
+import { Eye, Loader2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/services/api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-// نوع بيانات الطلب
-interface Order {
-  id: string;
-  date: string;
-  status: 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  total: number;
-  items: number;
+interface OrderItem {
+  id: number;
+  product: {
+    id: number;
+    slug: string;
+    price: number;
+    sale_price: number;
+    image: string | null;
+  };
+  variation: {
+    id: number;
+    slug: string;
+    price: number;
+    sale_price: number;
+  } | null;
+  quantity: number;
+  price: number;
+  total_amount: number;
 }
 
-// بيانات وهمية للطلبات
-const mockOrders: Order[] = [
-  {
-    id: "ORD-12345",
-    date: "2025-03-28",
-    status: "delivered",
-    total: 458.99,
-    items: 3
-  },
-  {
-    id: "ORD-12346",
-    date: "2025-04-01",
-    status: "shipped",
-    total: 129.50,
-    items: 1
-  },
-  {
-    id: "ORD-12347",
-    date: "2025-04-05",
-    status: "processing",
-    total: 789.75,
-    items: 4
-  }
-];
+interface Order {
+  id: number;
+  total_amount: number;
+  payment_method: 'credit_card' | 'cash' | 'vodafone_cash' | 'orange_cash' | 'etisalat_cash';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  created_at: string;
+  items: OrderItem[];
+  address: string;
+  shipping_cost: number;
+  tracking_number?: string;
+}
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
+  const { toast } = useToast();
 
-  // محاكاة جلب الطلبات من الخادم
-  useEffect(() => {
-    const fetchOrders = async () => {
-      // محاكاة تأخير الشبكة
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setOrders(mockOrders);
+  const fetchOrders = async () => {
+    try {
+      const response = await api.orders.getAll();
+      if (response.status === 'Success') {
+        setOrders(response.data);
+      }
+    } catch (error) {
+      toast({
+        title: 'خطأ',
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء جلب الطلبات',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+
+    try {
+      const response = await api.orders.cancel(orderToCancel);
+      if (response.status === 'Success') {
+        toast({
+          title: 'تم الإلغاء',
+          description: 'تم إلغاء الطلب بنجاح',
+        });
+        // تحديث قائمة الطلبات
+        await fetchOrders();
+      }
+    } catch (error) {
+      toast({
+        title: 'خطأ',
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء إلغاء الطلب',
+        variant: 'destructive',
+      });
+    } finally {
+      setOrderToCancel(null);
+    }
+  };
 
   // تحويل حالة الطلب إلى نص عربي
   const getStatusText = (status: Order['status']) => {
     switch (status) {
+      case 'pending':
+        return 'قيد الانتظار';
       case 'processing':
         return 'قيد المعالجة';
       case 'shipped':
@@ -74,10 +120,12 @@ const OrderHistory = () => {
   // تحديد لون شارة الحالة
   const getStatusBadgeColor = (status: Order['status']) => {
     switch (status) {
-      case 'processing':
+      case 'pending':
         return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
-      case 'shipped':
+      case 'processing':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
+      case 'shipped':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-100';
       case 'delivered':
         return 'bg-green-100 text-green-800 hover:bg-green-100';
       case 'cancelled':
@@ -90,11 +138,31 @@ const OrderHistory = () => {
   // تنسيق التاريخ
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA', {
+    return date.toLocaleDateString('ar-EG', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
+  };
+
+  // تنسيق طريقة الدفع
+  const getPaymentMethodText = (method: Order['payment_method']) => {
+    switch (method) {
+      case 'credit_card':
+        return 'بطاقة ائتمان';
+      case 'cash':
+        return 'الدفع عند الاستلام';
+      case 'vodafone_cash':
+        return 'فودافون كاش';
+      case 'orange_cash':
+        return 'اورنج كاش';
+      case 'etisalat_cash':
+        return 'اتصالات كاش';
+      default:
+        return method;
+    }
   };
 
   return (
@@ -122,34 +190,65 @@ const OrderHistory = () => {
                 <th className="py-4 px-6 text-right font-medium">التاريخ</th>
                 <th className="py-4 px-6 text-right font-medium">الحالة</th>
                 <th className="py-4 px-6 text-right font-medium">المبلغ</th>
-                <th className="py-4 px-6 text-right font-medium">عدد المنتجات</th>
-                <th className="py-4 px-6 text-right font-medium">التفاصيل</th>
+                <th className="py-4 px-6 text-right font-medium">طريقة الدفع</th>
+                <th className="py-4 px-6 text-right font-medium">العنوان</th>
+                <th className="py-4 px-6 text-right font-medium">العمليات</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-6 text-bloom-navy font-medium">{order.id}</td>
-                  <td className="py-4 px-6 text-gray-600">{formatDate(order.date)}</td>
+                  <td className="py-4 px-6 text-bloom-navy font-medium">#{order.id}</td>
+                  <td className="py-4 px-6 text-gray-600">{formatDate(order.created_at)}</td>
                   <td className="py-4 px-6">
                     <Badge className={`${getStatusBadgeColor(order.status)}`}>
                       {getStatusText(order.status)}
                     </Badge>
                   </td>
-                  <td className="py-4 px-6 font-medium">{order.total.toFixed(2)} ر.س</td>
-                  <td className="py-4 px-6">{order.items} منتج</td>
+                  <td className="py-4 px-6 font-medium">
+                    {(order.total_amount + order.shipping_cost).toFixed(2)} ج.م
+                    {order.shipping_cost > 0 && (
+                      <span className="text-xs text-gray-500 block">
+                        شامل الشحن: {order.shipping_cost} ج.م
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-4 px-6">{getPaymentMethodText(order.payment_method)}</td>
                   <td className="py-4 px-6">
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="sm"
-                      className="text-bloom-navy hover:text-bloom-navy/80"
-                    >
-                      <Link to={`/orders/${order.id}`}>
-                        <Eye className="ml-1 w-4 h-4" />
-                        عرض
-                      </Link>
-                    </Button>
+                    <div className="text-sm text-gray-600">
+                      {order.address}
+                      {order.tracking_number && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          رقم التتبع: {order.tracking_number}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex gap-2">
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="text-bloom-navy hover:text-bloom-navy/80"
+                      >
+                        <Link to={`/orders/${order.id}`}>
+                          <Eye className="ml-1 w-4 h-4" />
+                          عرض
+                        </Link>
+                      </Button>
+                      {order.status === 'pending' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => setOrderToCancel(order.id)}
+                        >
+                          <Trash2 className="ml-1 w-4 h-4" />
+                          إلغاء
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -157,6 +256,26 @@ const OrderHistory = () => {
           </table>
         </div>
       )}
+
+      <AlertDialog open={!!orderToCancel} onOpenChange={() => setOrderToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد إلغاء الطلب</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟ لا يمكن التراجع عن هذه العملية.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelOrder}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              تأكيد الإلغاء
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

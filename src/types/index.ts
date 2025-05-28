@@ -39,22 +39,57 @@ export interface User {
 }
 
 // أنواع بيانات الطلبات
-export interface Order {
-  id: string;
-  userId: string;
-  orderDate: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  totalAmount: number;
-  items: CartItem[];
-  shippingAddress: {
-    governorate: string;
-    city: string;
-    address: string;
-    phone: string;
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  product_id: number;
+  variation_id: number | null;
+  total_amount: number;
+  quantity: number;
+  price: number;
+  variation_data: any | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  product: {
+    id: number;
+    slug: string;
+    author: string;
+    description: string | null;
+    type: string;
+    sku: string;
+    price: number;
+    image: string;
+    sale_price: number;
+    sold_individually: boolean | null;
+    stock_status: string;
+    stock_qty: number;
+    total_sales: number;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    image_url: string;
   };
-  paymentMethod: 'cash' | 'card' | 'vodafone_cash' | 'orange_cash' | 'etisalat_cash';
-  paymentStatus: 'pending' | 'paid' | 'failed';
-  notes?: string;
+  variation: any | null;
+}
+
+export interface Order {
+  id: number;
+  user_id: number;
+  coupon_id: number | null;
+  address: string;
+  total_amount: number;
+  payment_method: 'credit_card' | 'cash' | 'vodafone_cash' | 'orange_cash' | 'etisalat_cash';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  tracking_number: string;
+  notes: string;
+  area_id: number;
+  shipping_cost: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  items: OrderItem[];
+  coupon: any | null;
 }
 
 // أنواع بيانات الفئات

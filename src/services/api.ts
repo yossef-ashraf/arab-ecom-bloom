@@ -356,6 +356,26 @@ export const api = {
 
   // Orders endpoints
   orders: {
+    getAll: async (): Promise<ApiResponse<Order[]>> => {
+      try {
+        return await apiRequest('orders', {
+          method: 'GET',
+        });
+      } catch (error) {
+        throw new Error('فشل في جلب الطلبات');
+      }
+    },
+
+    cancel: async (orderId: number): Promise<ApiResponse<null>> => {
+      try {
+        return await apiRequest(`orders/${orderId}/cancel`, {
+          method: 'POST',
+        });
+      } catch (error) {
+        throw new Error('فشل في إلغاء الطلب');
+      }
+    },
+
     create: async (orderData: Omit<Order, 'id' | 'orderDate' | 'status'>): Promise<ApiResponse<Order>> => {
       try {
         return await apiRequest('/orders', {
