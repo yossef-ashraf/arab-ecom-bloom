@@ -12,7 +12,8 @@ import {
   CouponValidationResponse,
   Area,
   Address,
-  AuthResponse
+  AuthResponse,
+  User
 } from '@/types';
 import Cookies from 'js-cookie';
 
@@ -114,19 +115,6 @@ const mockCategories: Category[] = [
     booksCount: 200
   }
 ];
-
-// Define types to match Postman collection
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  gender: 'male' | 'female';
-  date_of_birth: string;
-  created_at: string;
-  updated_at: string;
-  email_verified_at?: string | null;
-}
 
 // API helper function
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -377,7 +365,7 @@ export const api = {
       } catch (error) {
         // Mock response for development
         return {
-          success: true,
+          status: 'Success',
           message: "تم إنشاء الطلب بنجاح",
           data: {
             id: Date.now().toString(),
@@ -422,15 +410,25 @@ export const api = {
 
   // User profile endpoints
   profile: {
+    getUser: async (): Promise<ApiResponse<User>> => {
+      try {
+        return await apiRequest('user', {
+          method: 'GET',
+        });
+      } catch (error) {
+        throw new Error('فشل في جلب بيانات المستخدم');
+      }
+    },
+
     update: async (token: string, userData: Partial<User>): Promise<ApiResponse<User>> => {
       try {
-        return await apiRequest(`/user/update-profile`, {
+        return await apiRequest('update-profile', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: JSON.stringify(userData),
         });
       } catch (error) {
-        throw new Error('Failed to update profile');
+        throw new Error('فشل في تحديث الملف الشخصي');
       }
     },
 
@@ -441,7 +439,7 @@ export const api = {
           body: JSON.stringify(passwords),
         });
       } catch (error) {
-        throw new Error('Failed to change password');
+        throw new Error('فشل في تغيير كلمة المرور');
       }
     },
   },

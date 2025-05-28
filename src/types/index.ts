@@ -26,18 +26,16 @@ export interface CartItem extends Book {
 
 // أنواع بيانات المستخدم
 export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
+  id: number;
+  name: string;
   email: string;
   phone: string;
-  governorate: string;
-  city: string;
-  address: string;
-  birthDate: string;
   gender: 'male' | 'female';
-  createdAt: string;
-  isActive: boolean;
+  date_of_birth: string;
+  created_at: string;
+  updated_at: string;
+  email_verified_at: string | null;
+  role: string;
 }
 
 // أنواع بيانات الطلبات
@@ -122,10 +120,9 @@ export interface Address {
 
 // أنواع الاستجابات من الـ API
 export interface ApiResponse<T> {
-  success: boolean;
+  status: 'Success' | 'Error';
   message: string;
-  data?: T;
-  errors?: string[];
+  data: T;
 }
 
 // أنواع بيانات التوثيق
