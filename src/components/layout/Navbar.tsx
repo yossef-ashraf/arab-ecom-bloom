@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, X, Book } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, X, Book, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
@@ -12,7 +12,8 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState([]); 
   const { cartItems } = useCart();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const { getCartCount } = useCart();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -30,6 +31,14 @@ const Navbar = () => {
     }
     fetchCategories();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      // Error is already handled by AuthContext
+    }
+  };
 
   return (
     <nav className="bg-white py-4 shadow-md sticky top-0 z-50">
@@ -71,21 +80,32 @@ const Navbar = () => {
           {/* Right Icons */}
           <div className="flex items-center space-x-4 space-x-reverse">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="text-gray-700 hover:text-amber-600 flex items-center">
-                <User size={24} className="ml-1" />
-                <span className="hidden md:inline">{user?.firstName}</span>
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="icon">
+                    <User className="w-6 h-6 text-gray-600" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  className="text-gray-600 hover:text-red-600"
+                >
+                  <LogOut className="w-6 h-6" />
+                </Button>
+              </div>
             ) : (
-              <Link to="/login" className="text-gray-700 hover:text-amber-600">
-                <User size={24} />
-              </Link>
+              <Button asChild variant="ghost">
+                <Link to="/login">تسجيل الدخول</Link>
+              </Button>
             )}
 
             <Link to="/cart" className="text-gray-700 hover:text-amber-600 relative">
               <ShoppingCart size={24} />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartItems.length}
+              {getCartCount() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {getCartCount()}
                 </span>
               )}
             </Link>

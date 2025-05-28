@@ -11,11 +11,12 @@ import {
   Coupon,
   CouponValidationResponse,
   Area,
-  Address
+  Address,
+  AuthResponse
 } from '@/types';
 import Cookies from 'js-cookie';
 
-const BASE_URL = 'http://localhost:8000/api/';
+const BASE_URL = 'http://localhost:8000/api';
 
 // Mock data for development (will be replaced with real API calls)
 // api.ts
@@ -127,34 +128,44 @@ interface User {
   email_verified_at?: string | null;
 }
 
-interface AuthResponse {
-  status: string;
-  message: string;
-  data: {
-    user: User;
-    access_token: string;
-    token_type: string;
-  };
-}
-
 // API helper function
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
+  const token = Cookies.get('access_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
 
-  const data = await response.json();
+  try {
+    const response = await fetch(`${BASE_URL}/${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Handle validation errors
+      if (response.status === 422 && data.errors) {
+        const errorMessage = Object.values(data.errors)
+          .flat()
+          .join('\n');
+        throw new Error(errorMessage);
+      }
+      
+      // Handle other errors
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unexpected error occurred');
   }
-
-  return data;
 };
 
 export const api = {
@@ -166,10 +177,9 @@ export const api = {
         body: JSON.stringify(credentials),
       });
       
-      // حفظ البيانات في cookies
-      if (response.data && response.data.access_token && response.data.user) {
-        Cookies.set('access_token', response.data.access_token, { expires: 7 }); // تنتهي بعد 7 أيام
-        Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 }); // تنتهي بعد 7 أيام
+      if (response.data?.access_token) {
+        Cookies.set('access_token', response.data.access_token, { expires: 7 });
+        Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
       }
       
       return response;
@@ -181,31 +191,40 @@ export const api = {
         body: JSON.stringify(userData),
       });
       
-      // حفظ البيانات في cookies
-      if (response.data && response.data.access_token && response.data.user) {
-        Cookies.set('access_token', response.data.access_token, { expires: 7 }); // تنتهي بعد 7 أيام
-        Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 }); // تنتهي بعد 7 أيام
+      if (response.data?.access_token) {
+        Cookies.set('access_token', response.data.access_token, { expires: 7 });
+        Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
       }
       
       return response;
     },
 
-    logout: async (token: string): Promise<ApiResponse<null>> => {
-      // حذف البيانات من cookies عند تسجيل الخروج
-      Cookies.remove('access_token');
-      Cookies.remove('user');
-      
-      return await apiRequest('logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    logout: async (): Promise<ApiResponse<null>> => {
+      try {
+        const response = await apiRequest('logout', {
+          method: 'POST',
+        });
+        
+        Cookies.remove('access_token');
+        Cookies.remove('user');
+        
+        return response;
+      } catch (error) {
+        // Even if the API call fails, clear the cookies
+        Cookies.remove('access_token');
+        Cookies.remove('user');
+        throw error;
+      }
     },
 
-    verifyToken: async (token: string): Promise<ApiResponse<User>> => {
-      return await apiRequest('user', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    getCurrentUser: () => {
+      const userStr = Cookies.get('user');
+      return userStr ? JSON.parse(userStr) : null;
     },
+
+    isAuthenticated: () => {
+      return !!Cookies.get('access_token');
+    }
   },
 
   // Books endpoints

@@ -135,24 +135,22 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
-  phone: string;
-  governorate: string;
-  city: string;
-  address: string;
-  birthDate: string;
+  password_confirmation: string;
   gender: 'male' | 'female';
+  date_of_birth: string;
+  phone: string;
 }
 
 export interface AuthResponse {
-  success: boolean;
+  status: string;
   message: string;
-  data?: {
+  data: {
     user: User;
-    token: string;
+    access_token: string;
+    token_type: string;
   };
 }
 
