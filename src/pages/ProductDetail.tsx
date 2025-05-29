@@ -47,7 +47,7 @@ const ProductDetail = () => {
             rating: 4.5, // default if backend doesn't provide rating
             description: data.description ?? "لا يوجد وصف",
             isbn: data.isbn ?? "غير متوفر",
-            publisher: data.publisher ?? "غير معروف",
+            publisher: data.author ?? "غير معروف",
             publicationDate: data.publication_date ?? "غير معروف",
             language: data.language ?? "العربية",
             pageCount: data.page_count ?? 0,
