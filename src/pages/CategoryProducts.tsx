@@ -1,6 +1,7 @@
 // src/pages/CategoryProducts.tsx
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams ,Link} from 'react-router-dom';
+
 import { getProductsByCategory } from '../services/api';
 import BookCard from '../components/product/BookCard';
 import { Book } from '../types';
@@ -8,7 +9,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 const Products = () => {
-  const [books, setBooks] = useState<Book[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);  
+  const [categoryName, setCategoryName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   
 
@@ -17,11 +19,13 @@ const Products = () => {
   useEffect(() => {
     if (id) {
       getProductsByCategory(Number(id))
-        .then((products) => {
-        const mapped: Book[] = products.map((product: any) => ({
+       .then(({ categoryName, products }) => {
+          setCategoryName(categoryName);
+
+          const mapped: Book[] = products.map((product: any) => ({
           id: product.id,
           title: product.slug.replace(/-/g, ' '), // or use `product.name` if available
-          author: 'مؤلف غير معروف', // default or extend API later
+          author: product.author || 'مؤلف غير معروف', // default or extend API later
           price: product.price,
           discountPrice: product.sale_price,
           discount: product.price > product.sale_price,
@@ -36,7 +40,7 @@ const Products = () => {
         setBooks(mapped);
       })
       .catch((err) => console.error('Error loading books:', err))
-      .finally(() => setLoading(false));
+        .finally(() => setLoading(false));
     }
   }, [id]);
 
@@ -44,13 +48,38 @@ const Products = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col">
+     <div className="min-h-screen flex flex-col">
       <Navbar />
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
+
+      <main className="flex-grow py-8">
+        <div className="container mx-auto px-4">
+          <nav className="flex mb-8" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-2 space-x-reverse">
+              <li>
+                <Link to="/" className="text-gray-500 hover:text-gray-700">
+                  الرئيسية
+                </Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link
+                
+                  to={`/categories/${id}`}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  {categoryName}
+                </Link>
+              </li>
+            </ol>
+          </nav>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
       {books.map((book) => (
         <BookCard key={book.id} book={book} />
       ))}
     </div>
+        </div>
+      </main>
+
       <Footer />
     </div>
   );
