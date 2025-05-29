@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-
+import Cookies from 'js-cookie';
 interface FormData {
   name: string;
   email: string;
@@ -31,6 +31,13 @@ const Register = () => {
     date_of_birth: "",
     phone: "",
   });
+
+    useEffect(() => {
+      const token = Cookies.get("access_token");
+      if (token) {
+        navigate("/dashboard", { replace: true }); // Prevent access to login if already authenticated
+      }
+    }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
