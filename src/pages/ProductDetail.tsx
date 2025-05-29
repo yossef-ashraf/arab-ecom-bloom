@@ -40,6 +40,7 @@ const ProductDetail = () => {
             discount: data.sale_price < data.price,
             discountPrice: data.sale_price,
             category: data.categories?.[0]?.data ?? "غير مصنف",
+            category_id: data.categories?.[0]?.id ?? 12,
             image:
               data.image_url ??
               "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000",
@@ -130,7 +131,8 @@ const ProductDetail = () => {
               <li>/</li>
               <li>
                 <Link
-                  to={`/categories/${book.category}`}
+                
+                  to={`/categories/${book.category_id}`}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   {book.category}
