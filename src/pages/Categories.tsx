@@ -16,7 +16,7 @@ const Categories = () => {
           id: category.id,
           name: category.data || 'غير مصنف',
           image: category.image_url || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2030&auto=format&fit=crop",
-          itemCount:  category.items_count || 3
+          itemCount:  category.items_count
         }));
 
         setCategories(mapped);
