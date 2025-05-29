@@ -97,6 +97,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearCart = () => {
+    
+    setCoupon(null);
+    setDiscount(0);
+    setFinalAmount(0);
     setCartItems([]);
     toast({
       title: "تم تفريغ السلة",
