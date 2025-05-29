@@ -76,6 +76,7 @@ const BookCard = ({ book }: BookCardProps) => {
           <Button
             className="w-full bg-amber-600 text-white hover:bg-amber-700 transition-all"
             onClick={handleAddToCart}
+            disabled={!book.inStock}
           >
             <ShoppingCart size={18} className="ml-2" />
             أضف إلى السلة
