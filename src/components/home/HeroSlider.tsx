@@ -28,7 +28,7 @@ const defaultSlides = [
     title: "حسابك الشخصي",
     subtitle: "أدار طلباتك، عناوينك، وطرق الدفع الخاصة بك",
     buttonText: "عرض الملف الشخصي",
-    buttonLink: "/profile",
+    buttonLink: "/dashboard",
     image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2070&auto=format&fit=crop",
     bgColor: "bg-bloom-teal",
   },
