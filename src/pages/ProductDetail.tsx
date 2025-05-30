@@ -12,17 +12,51 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useCart } from "@/contexts/CartContext";
 import { Book } from "@/types";
+
+interface Variation {
+  id: number;
+  slug: string;
+  product_id: number;
+  price: number;
+  sale_price: number;
+  stock_status: string;
+  stock_qty: number;
+  sku: string;
+}
+
+interface ProductData {
+  id: number;
+  slug: string;
+  author: string;
+  description: string | null;
+  type: "simple" | "variable";
+  sku: string;
+  price: number;
+  image: string;
+  sale_price: number;
+  stock_status: string;
+  stock_qty: number;
+  total_sales: number;
+  image_url: string;
+  categories: Array<{
+    id: number;
+    data: string;
+  }>;
+  variations?: Variation[];
+}
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  const [book, setBook] = useState<Book | null>(null);
+  const [product, setProduct] = useState<ProductData | null>(null);
+  const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -32,29 +66,10 @@ const ProductDetail = () => {
     if (id) {
       getProductsById(Number(id))
         .then((data) => {
-          setBook({
-            id: data.id.toString(),
-            title: data.slug,
-            author: data.author ?? "مؤلف غير معروف",
-            price: data.price,
-            discount: data.sale_price < data.price,
-            discountPrice: data.sale_price,
-            category: data.categories?.[0]?.data ?? "غير مصنف",
-            category_id: data.categories?.[0]?.id ?? 12,
-            image:
-              data.image_url ??
-              "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000",
-            rating: 4.5, // default if backend doesn't provide rating
-            description: data.description ?? "لا يوجد وصف",
-            isbn: data.isbn ?? "غير متوفر",
-            publisher: data.author ?? "غير معروف",
-            publicationDate: data.publication_date ?? "غير معروف",
-            language: data.language ?? "العربية",
-            pageCount: data.page_count ?? 0,
-            format: data.format ?? "pdf",
-            fileSize: data.file_size ?? "غير معروف",
-            inStock: data.stock_status === "in_stock",
-          });
+          setProduct(data);
+          if (data.type === "variable" && data.variations && data.variations.length > 0) {
+            setSelectedVariation(data.variations[0]);
+          }
         })
         .catch((err) => {
           console.error(err);
@@ -70,15 +85,40 @@ const ProductDetail = () => {
   const decrementQuantity = () => quantity > 1 && setQuantity((q) => q - 1);
 
   const handleAddToCart = () => {
-    if (book) {
-      addToCart(book, quantity);
+    if (product) {
+      const bookData: Book = {
+        id: product.id.toString(),
+        title: product.slug,
+        author: product.author ?? "مؤلف غير معروف",
+        price: selectedVariation?.price ?? product.price,
+        discount: selectedVariation 
+          ? selectedVariation.sale_price < selectedVariation.price
+          : product.sale_price < product.price,
+        discountPrice: selectedVariation?.sale_price ?? product.sale_price,
+        category: product.categories?.[0]?.data ?? "غير مصنف",
+        category_id: product.categories?.[0]?.id ?? 12,
+        image: product.image_url ?? null,
+        rating: 4.5,
+        description: product.description ?? "ليس هنالك وصف",
+        isbn: product.sku,
+        publisher: product.author ?? "غير معروف",
+        publicationDate: "غير معروف",
+        language: "العربية",
+        pageCount: 0,
+        format: "pdf",
+        fileSize: "غير معروف",
+        inStock: selectedVariation 
+          ? selectedVariation.stock_status === "in_stock"
+          : product.stock_status === "in_stock",
+      };
+      addToCart(bookData, quantity);
       setQuantity(1);
     }
   };
 
   const handleBuyNow = () => {
-    if (book) {
-      addToCart(book, quantity);
+    if (product) {
+      handleAddToCart();
       navigate("/cart");
     }
   };
@@ -91,7 +131,7 @@ const ProductDetail = () => {
     );
   }
 
-  if (error || !book) {
+  if (error || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-600">
         {error || "المنتج غير موجود"}
@@ -99,20 +139,24 @@ const ProductDetail = () => {
     );
   }
 
-  const discountPercentage = book.discount
-    ? Math.round(((book.price - book.discountPrice) / book.price) * 100)
+  const currentPrice = selectedVariation?.price ?? product.price;
+  const currentSalePrice = selectedVariation?.sale_price ?? product.sale_price;
+  const hasDiscount = currentSalePrice < currentPrice;
+  const discountPercentage = hasDiscount
+    ? Math.round(((currentPrice - currentSalePrice) / currentPrice) * 100)
     : 0;
 
-  const images = [book.image, book.image, book.image, book.image];
-
+  // const images = [product.image_url];
+  const images = [];
+  
   const specifications = [
-    { name: "الناشر", value: book.publisher },
-    { name: "تاريخ النشر", value: book.publicationDate },
-    { name: "اللغة", value: book.language },
-    { name: "عدد الصفحات", value: book.pageCount.toString() },
-    { name: "الصيغة", value: book.format.toUpperCase() },
-    { name: "حجم الملف", value: book.fileSize },
-    { name: "ISBN", value: book.isbn },
+    { name: "الرقم التسلسلي", value: product.sku },
+    { name: "المؤلف", value: product.author },
+    { name: "الفئة", value: product.categories?.[0]?.data ?? "غير مصنف" },
+    { name: "حالة المخزون", value: selectedVariation 
+      ? (selectedVariation.stock_status === "in_stock" ? "متوفر" : "غير متوفر")
+      : (product.stock_status === "in_stock" ? "متوفر" : "غير متوفر")
+    },
   ];
 
   return (
@@ -131,15 +175,14 @@ const ProductDetail = () => {
               <li>/</li>
               <li>
                 <Link
-                
-                  to={`/categories/${book.category_id}`}
+                  to={`/categories/${product.categories?.[0]?.id}`}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  {book.category}
+                  {product.categories?.[0]?.data ?? "غير مصنف"}
                 </Link>
               </li>
               <li>/</li>
-              <li className="text-gray-900">{book.title}</li>
+              <li className="text-gray-900">{product.slug}</li>
             </ol>
           </nav>
 
@@ -147,8 +190,9 @@ const ProductDetail = () => {
             <div>
               <div className="mb-4 aspect-square overflow-hidden rounded-lg bg-gray-100">
                 <img
-                  src={images[activeImage]}
-                  alt={book.title}
+                  // src={images[activeImage]}
+                  src={product.image_url}
+                  alt={product.slug}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -166,7 +210,7 @@ const ProductDetail = () => {
                   >
                     <img
                       src={image}
-                      alt={`${book.title} - صورة ${index + 1}`}
+                      alt={`${product.slug} - صورة ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
                   </button>
@@ -176,34 +220,49 @@ const ProductDetail = () => {
 
             <div>
               <h1 className="text-3xl font-bold text-blue-900 mb-2">
-                {book.title}
+                {product.slug}
               </h1>
-              <p className="text-lg text-gray-600 mb-4">بقلم: {book.author}</p>
+              <p className="text-lg text-gray-600 mb-4">بقلم: {product.author}</p>
 
-              <div className="flex items-center mb-4">
-                <div className="flex ml-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i < Math.floor(book.rating)
-                          ? "text-yellow-400 fill-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
+              {product.type === "variable" && product.variations && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    اختر النسخة
+                  </label>
+                  <Select
+                    value={selectedVariation?.id.toString()}
+                    onValueChange={(value) => {
+                      const variation = product.variations?.find(
+                        (v) => v.id.toString() === value
+                      );
+                      setSelectedVariation(variation ?? null);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="اختر النسخة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {product.variations.map((variation) => (
+                        <SelectItem
+                          key={variation.id}
+                          value={variation.id.toString()}
+                        >
+                          {variation.slug} - {variation.price} جنيه
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <span className="text-sm text-gray-500">({book.rating})</span>
-              </div>
+              )}
 
               <div className="mb-6">
-                {book.discount ? (
+                {hasDiscount ? (
                   <div className="flex items-center">
                     <span className="text-3xl font-bold text-red-500 ml-3">
-                      {book.discountPrice} جنيه
+                      {currentSalePrice} جنيه
                     </span>
                     <span className="text-xl text-gray-500 line-through ml-3">
-                      {book.price} جنيه
+                      {currentPrice} جنيه
                     </span>
                     <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded">
                       خصم {discountPercentage}%
@@ -211,17 +270,21 @@ const ProductDetail = () => {
                   </div>
                 ) : (
                   <span className="text-3xl font-bold text-blue-900">
-                    {book.price} جنيه
+                    {currentPrice} جنيه
                   </span>
                 )}
               </div>
 
-              <p className="text-gray-700 mb-6">{book.description}</p>
+              <p className="text-gray-700 mb-6">
+                {product.description ?? "ليس هنالك وصف"}
+              </p>
 
               <div className="mb-6">
                 <div className="flex items-center mb-3">
                   <span className="text-gray-600 ml-3">الحالة:</span>
-                  {book.inStock ? (
+                  {(selectedVariation 
+                    ? selectedVariation.stock_status === "in_stock"
+                    : product.stock_status === "in_stock") ? (
                     <span className="text-green-600 font-medium">متوفر</span>
                   ) : (
                     <span className="text-red-600 font-medium">غير متوفر</span>
@@ -252,7 +315,10 @@ const ProductDetail = () => {
                 <Button
                   onClick={handleAddToCart}
                   className="bg-blue-900 text-white hover:bg-blue-800 flex-1 font-bold py-6"
-                  disabled={!book.inStock}
+                  disabled={selectedVariation 
+                    ? selectedVariation.stock_status !== "in_stock"
+                    : product.stock_status !== "in_stock"
+                  }
                 >
                   إضافة إلى السلة
                 </Button>
@@ -314,7 +380,7 @@ const ProductDetail = () => {
                 className="p-6 bg-white rounded-md shadow-sm"
               >
                 <p className="text-gray-700 leading-relaxed">
-                  {book.description}
+                  {product.description ?? "ليس هنالك وصف"}
                 </p>
               </TabsContent>
             </Tabs>

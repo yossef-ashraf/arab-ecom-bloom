@@ -7,6 +7,7 @@ export interface Book {
   discount: boolean;
   discountPrice: number;
   category: string;
+  category_id: number;
   image: string;
   rating: number;
   description: string;
