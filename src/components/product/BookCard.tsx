@@ -1,6 +1,5 @@
-
 import { Link } from "react-router-dom";
-import { Heart, ShoppingCart, Eye, Star, Download } from "lucide-react";
+import { ShoppingCart, Eye, Star, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
@@ -52,14 +51,6 @@ const BookCard = ({ book }: BookCardProps) => {
         {/* Quick actions */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="flex gap-2">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="rounded-full bg-white text-blue-900 hover:bg-amber-600 hover:text-white"
-              aria-label="Add to wishlist"
-            >
-              <Heart size={18} />
-            </Button>
             <Button
               size="icon"
               variant="secondary"

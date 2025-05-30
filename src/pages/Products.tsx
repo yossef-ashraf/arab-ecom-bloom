@@ -25,7 +25,7 @@ const Products = () => {
           fileSize: '2MB', // mock or real from backend
           inStock: product.stock_status === 'in_stock',
         }));
-
+        // console.log(mapped);
         setBooks(mapped);
       })
       .catch((err) => console.error('Error loading books:', err))

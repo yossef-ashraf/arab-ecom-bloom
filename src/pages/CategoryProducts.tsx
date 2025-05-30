@@ -31,7 +31,7 @@ const Products = () => {
           discount: product.price > product.sale_price,
           category: product.categories?.[0]?.data || 'غير مصنف',
           format: 'pdf', // or product.format if available
-          image: product.image || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000',
+          image: product.image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000',
           rating: 4.5, // default rating or enhance API later
           fileSize: '2MB', // mock or real from backend
           inStock: product.stock_status === 'in_stock',

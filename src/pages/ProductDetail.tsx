@@ -322,14 +322,6 @@ const ProductDetail = () => {
                 >
                   إضافة إلى السلة
                 </Button>
-
-                <Button
-                  variant="outline"
-                  className="mr-3 p-3 border-gray-300 hover:bg-gray-100 hover:text-amber-600"
-                  aria-label="أضف إلى المفضلة"
-                >
-                  <Heart size={20} />
-                </Button>
               </div>
 
               <div className="space-y-3 border-t pt-6">
