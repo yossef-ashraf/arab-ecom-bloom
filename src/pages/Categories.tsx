@@ -5,12 +5,18 @@ import { Category } from '../types';
 import { Link } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "react-router-dom";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const Categories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerView = 5;
+
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     getCategories()
@@ -52,6 +58,8 @@ const Categories = () => {
   const visibleCategories = categories.slice(currentIndex, currentIndex + itemsPerView);
 
   return (
+    <div className="min-h-screen flex flex-col">
+      {!isHomePage && <Navbar />}
     <section className="py-16">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-center text-blue-900 mb-8">تسوق حسب الفئة</h2>
@@ -113,6 +121,8 @@ const Categories = () => {
         </div>
       </div>
     </section>
+          {!isHomePage && <Footer />}
+    </div>
   );
 };
 
