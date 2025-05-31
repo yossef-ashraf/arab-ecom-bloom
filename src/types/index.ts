@@ -61,6 +61,7 @@ export interface OrderItem {
     sku: string;
     price: number;
     image: string;
+    image_url: string;
     sale_price: number;
     sold_individually: boolean | null;
     stock_status: string;
@@ -69,7 +70,6 @@ export interface OrderItem {
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
-    image_url: string;
   };
   variation: any | null;
 }
@@ -78,19 +78,76 @@ export interface Order {
   id: number;
   user_id: number;
   coupon_id: number | null;
+  address_id: number;
   address: string;
   total_amount: number;
   payment_method: 'credit_card' | 'cash' | 'vodafone_cash' | 'orange_cash' | 'etisalat_cash';
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  tracking_number: string;
-  notes: string;
-  area_id: number;
-  shipping_cost: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
+  tracking_number: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  items: OrderItem[];
-  coupon: any | null;
+  items: Array<{
+    id: number;
+    order_id: number;
+    product_id: number;
+    variation_id: number | null;
+    total_amount: number;
+    quantity: number;
+    price: number;
+    variation_data: any | null;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    product: {
+      id: number;
+      slug: string;
+      author: string;
+      description: string | null;
+      type: 'simple' | 'variation';
+      sku: string;
+      price: number;
+      image: string;
+      image_url: string;
+      sale_price: number;
+      sold_individually: boolean | null;
+      stock_status: 'in_stock' | 'out_of_stock';
+      stock_qty: number;
+      total_sales: number;
+      created_at: string;
+      updated_at: string;
+      deleted_at: string | null;
+    };
+    variation: {
+      id: number;
+      slug: string;
+      product_id: number;
+      price: number;
+      sale_price: number;
+      stock_status: 'in_stock' | 'out_of_stock';
+      stock_qty: number;
+      sku: string;
+      created_at: string;
+      updated_at: string;
+      deleted_at: string | null;
+    } | null;
+  }>;
+  coupon: {
+    id: number;
+    code: string;
+    type: 'percentage' | 'fixed';
+    value: number;
+    min_order_amount: number;
+    max_discount_amount: number;
+    start_date: string;
+    end_date: string;
+    usage_limit: number;
+    used_count: number;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+  } | null;
 }
 
 // أنواع بيانات الفئات
