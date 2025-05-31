@@ -2,9 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import axios from "axios";
-import Cookies from "js-cookie";
-import { Order } from "@/types";
+import { getOrders } from "../services/api";
 
 const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -50,14 +48,9 @@ const OrderDetails = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const token = Cookies.get("access_token");
-        const res = await axios.get("http://localhost:8000/api/orders", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        const orders = res.data.data;
-        const foundOrder = orders.find((o: Order) => o.id === parseInt(id!));
+        const res = await getOrders()
+        const orders = res.data;
+        const foundOrder = orders.find((o: any) => o.id === parseInt(id!));
         setOrder(foundOrder);
       } catch (err) {
         console.error("Failed to fetch orders", err);
