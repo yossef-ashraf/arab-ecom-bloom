@@ -28,6 +28,19 @@ export const getProducts = async () => {
   return json.data; // because the API returns { status, message, data }
 };
 
+export const getOrders = async () => {
+  const token = Cookies.get('access_token');
+  const res = await fetch('http://127.0.0.1:8000/api/orders/', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Failed to fetch products');
+  const json = await res.json();
+  console.log("Fetched orders:", json.data);
+  return json; // because the API returns { status, message, data }
+};
+
 export const getProductsByCategory = async (categoryId: number) => {
   const res = await fetch(`http://127.0.0.1:8000/api/categories/${categoryId}`);
   if (!res.ok) throw new Error('Failed to fetch category data');
@@ -597,8 +610,8 @@ export const api = {
     },
 
     clear: async () => {
-      return await apiRequest('cart', {
-        method: 'DELETE',
+      return await apiRequest('cart/clear', {
+        method: 'POST',
       });
     },
   },
