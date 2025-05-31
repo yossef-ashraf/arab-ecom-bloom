@@ -1,11 +1,48 @@
-import { createContext, useState, useContext, ReactNode } from "react";
+import { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { Book, CartItem, Coupon, CouponValidationResponse } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/services/api";
 
+interface CartProduct {
+  id: number;
+  slug: string;
+  author: string;
+  description: string | null;
+  type: 'simple' | 'variable';
+  sku: string;
+  price: number;
+  image: string;
+  sale_price: number;
+  stock_status: 'in_stock' | 'out_of_stock';
+  stock_qty: number;
+  image_url: string;
+}
+
+interface CartVariation {
+  id: number;
+  slug: string;
+  product_id: number;
+  price: number;
+  sale_price: number;
+  stock_status: 'in_stock' | 'out_of_stock';
+  stock_qty: number;
+  sku: string;
+}
+
+interface CartItemResponse {
+  id: number;
+  user_id: number;
+  product_id: number;
+  variation_id: number | null;
+  total: number;
+  quantity: number;
+  product: CartProduct;
+  variation: CartVariation | null;
+}
+
 interface CartContextType {
-  cartItems: CartItem[];
-  addToCart: (book: Book, quantity?: number) => void;
+  cartItems: CartItemResponse[];
+  addToCart: (book: Book & { variation_id?: number | null }, quantity?: number) => void;
   removeFromCart: (bookId: string) => void;
   updateQuantity: (bookId: string, quantity: number) => void;
   clearCart: () => void;
@@ -16,6 +53,9 @@ interface CartContextType {
   coupon: Coupon | null;
   discount: number;
   finalAmount: number;
+  loading: boolean;
+  subtotal: number;
+  total: number;
 }
 
 const CartContext = createContext<CartContextType>({
@@ -31,88 +71,170 @@ const CartContext = createContext<CartContextType>({
   coupon: null,
   discount: 0,
   finalAmount: 0,
+  loading: false,
+  subtotal: 0,
+  total: 0,
 });
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItemResponse[]>([]);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [discount, setDiscount] = useState(0);
   const [finalAmount, setFinalAmount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [subtotal, setSubtotal] = useState(0);
+  const [total, setTotal] = useState(0);
   const { toast } = useToast();
 
-  const addToCart = (book: Book, quantity = 1) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === book.id);
+  // Fetch cart items on mount
+  useEffect(() => {
+    fetchCartItems();
+  }, []);
 
-      if (existingItem) {
-        toast({
-          title: "تم تحديث السلة",
-          description: `تم تحديث كمية "${book.title}" في سلة التسوق`,
+  const fetchCartItems = async () => {
+    try {
+      const response = await api.cart.get();
+
+      if (response.status === "Success") {
+        // Sort items to show variations first
+        const sortedItems = response.data.sort((a: CartItemResponse, b: CartItemResponse) => {
+          if (a.variation && !b.variation) return -1;
+          if (!a.variation && b.variation) return 1;
+          return 0;
         });
 
-        return prevItems.map((item) =>
-          item.id === book.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+        setCartItems(sortedItems);
+        
+        // Calculate totals
+        const newSubtotal = sortedItems.reduce((sum, item) => {
+          const price = item.variation ? item.variation.sale_price : item.product.sale_price;
+          return sum + (price * item.quantity);
+        }, 0);
+        
+        setSubtotal(Math.round(newSubtotal * 100) / 100);
+        setTotal(Math.round(newSubtotal * 100) / 100);
       }
-
+    } catch (error) {
+      console.error('Error fetching cart:', error);
       toast({
-        title: "تمت الإضافة إلى السلة",
-        description: `تمت إضافة "${book.title}" إلى سلة التسوق`,
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحميل السلة",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addToCart = async (book: Book & { variation_id?: number | null }, quantity = 1) => {
+    try {
+      const response = await api.cart.add({
+        product_id: parseInt(book.id),
+        variation_id: book.variation_id || null,
+        quantity: quantity
       });
 
-      return [...prevItems, { ...book, quantity }];
-    });
-  };
-
-  const removeFromCart = (bookId: string) => {
-    setCartItems((prevItems) => {
-      const itemToRemove = prevItems.find((item) => item.id === bookId);
-      
-      if (itemToRemove) {
+      if (response.status === "Success") {
+        await fetchCartItems();
         toast({
-          title: "تمت إزالة الكتاب",
-          description: `تمت إزالة "${itemToRemove.title}" من سلة التسوق`,
+          title: "تمت الإضافة إلى السلة",
+          description: `تمت إضافة "${book.title}" إلى سلة التسوق`,
         });
       }
-      
-      return prevItems.filter((item) => item.id !== bookId);
-    });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إضافة المنتج إلى السلة",
+        variant: "destructive",
+      });
+    }
   };
 
-  const updateQuantity = (bookId: string, quantity: number) => {
+  const removeFromCart = async (bookId: string) => {
+    try {
+      const cartItem = cartItems.find(item => item.product_id.toString() === bookId);
+      if (!cartItem) return;
+
+      const response = await api.cart.remove(cartItem.id);
+      
+      if (response.status === "Success") {
+        await fetchCartItems();
+        toast({
+          title: "تمت إزالة الكتاب",
+          description: "تمت إزالة المنتج من سلة التسوق",
+        });
+      }
+    } catch (error) {
+      console.error('Error removing from cart:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إزالة المنتج من السلة",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateQuantity = async (bookId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(bookId);
       return;
     }
 
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === bookId ? { ...item, quantity } : item
-      )
-    );
+    try {
+      const cartItem = cartItems.find(item => item.product_id.toString() === bookId);
+      if (!cartItem) return;
+
+      const response = await api.cart.update(cartItem.id, {
+        quantity: quantity
+      });
+
+      if (response.status === "Success") {
+        await fetchCartItems();
+      }
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث الكمية",
+        variant: "destructive",
+      });
+    }
   };
 
-  const clearCart = () => {
-    
-    setCoupon(null);
-    setDiscount(0);
-    setFinalAmount(0);
-    setCartItems([]);
-    toast({
-      title: "تم تفريغ السلة",
-      description: "تم تفريغ سلة التسوق بنجاح",
-    });
+  const clearCart = async () => {
+    try {
+      const response = await api.cart.clear();
+      
+      if (response.status === "Success") {
+        setCartItems([]);
+        setCoupon(null);
+        setDiscount(0);
+        setFinalAmount(0);
+        setSubtotal(0);
+        setTotal(0);
+        toast({
+          title: "تم تفريغ السلة",
+          description: "تم تفريغ سلة التسوق بنجاح",
+        });
+      }
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تفريغ السلة",
+        variant: "destructive",
+      });
+    }
   };
 
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const itemPrice = item.discount ? item.discountPrice : item.price;
-      return total + itemPrice * item.quantity;
-    }, 0);
+    return Math.round(cartItems.reduce((total, item) => {
+      const price = item.variation ? item.variation.sale_price : item.product.sale_price;
+      return total + (price * item.quantity);
+    }, 0) * 100) / 100;
   };
 
   const getCartCount = () => {
@@ -121,13 +243,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const applyCoupon = async (code: string) => {
     try {
-      const subtotal = getCartTotal();
       const response = await api.coupons.validate(code, subtotal);
       
       if (response.status === "Success") {
         setCoupon(response.data.coupon);
-        setDiscount(response.data.discount);
-        setFinalAmount(response.data.final_amount);
+        setDiscount(Math.round(response.data.discount * 100) / 100);
+        setFinalAmount(Math.round(response.data.final_amount * 100) / 100);
         
         toast({
           title: "تم تطبيق الكوبون",
@@ -146,7 +267,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const removeCoupon = () => {
     setCoupon(null);
     setDiscount(0);
-    setFinalAmount(0);
+    setFinalAmount(total);
     
     toast({
       title: "تم إزالة الكوبون",
@@ -169,6 +290,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         coupon,
         discount,
         finalAmount,
+        loading,
+        subtotal,
+        total,
       }}
     >
       {children}

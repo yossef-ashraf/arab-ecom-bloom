@@ -65,6 +65,7 @@ const mockBooks: Book[] = [
     discount: true,
     discountPrice: 95,
     category: "روايات عربية",
+    category_id: 1,
     image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=1000",
     rating: 4.5,
     description: "رواية عربية رائعة تحكي قصة الحب والحياة",
@@ -85,6 +86,7 @@ const mockBooks: Book[] = [
     discount: false,
     discountPrice: 150,
     category: "روايات عالمية",
+    category_id: 2,
     image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1000",
     rating: 4.8,
     description: "رواية عالمية كلاسيكية من أدب أمريكا اللاتينية",
@@ -137,6 +139,15 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     const data = await response.json();
 
     if (!response.ok) {
+      // Handle authentication errors
+      if (response.status === 401) {
+        // Clear cookies and redirect to login
+        Cookies.remove('access_token');
+        Cookies.remove('user');
+        window.location.href = '/login';
+        throw new Error('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى');
+      }
+
       // Handle validation errors
       if (response.status === 422 && data.errors) {
         const errorMessage = Object.values(data.errors)
@@ -386,15 +397,17 @@ export const api = {
         });
       } catch (error) {
         // Mock response for development
+        const mockOrder = {
+          id: Date.now(),
+          orderDate: new Date().toISOString(),
+          status: 'pending',
+          ...orderData
+        } as unknown as Order;
+        
         return {
           status: 'Success',
           message: "تم إنشاء الطلب بنجاح",
-          data: {
-            id: Date.now().toString(),
-            orderDate: new Date().toISOString(),
-            status: 'pending',
-            ...orderData
-          } as Order
+          data: mockOrder
         };
       }
     },
@@ -552,6 +565,41 @@ export const api = {
       } catch (error) {
         throw new Error('Failed to delete address');
       }
+    },
+  },
+
+  // Cart endpoints
+  cart: {
+    get: async () => {
+      return await apiRequest('cart', {
+        method: 'GET',
+      });
+    },
+
+    add: async (data: { product_id: number; variation_id?: number | null; quantity: number }) => {
+      return await apiRequest('cart', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+
+    update: async (cartItemId: number, data: { quantity: number }) => {
+      return await apiRequest(`cart/${cartItemId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+
+    remove: async (cartItemId: number) => {
+      return await apiRequest(`cart/${cartItemId}`, {
+        method: 'DELETE',
+      });
+    },
+
+    clear: async () => {
+      return await apiRequest('cart', {
+        method: 'DELETE',
+      });
     },
   },
 };
