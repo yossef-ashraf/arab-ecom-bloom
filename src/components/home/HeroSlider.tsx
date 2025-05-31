@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Cookies from "js-cookie"; // ✅ Add this to access the login token
 
 interface Slide {
   id: number;
@@ -13,7 +14,7 @@ interface Slide {
   bgColor: string;
 }
 
-const defaultSlides = [
+const guestSlides: Slide[] = [
   {
     id: 1,
     title: "مرحبًا بك في عالم الكتب",
@@ -43,21 +44,53 @@ const defaultSlides = [
   },
 ];
 
+const loggedInSlides: Slide[] = [
+  {
+    id: 1,
+    title: "مرحبًا بعودتك!",
+    subtitle: "استعرض أحدث الكتب المضافة لمكتبتنا.",
+    buttonText: "تصفح الكتب",
+    buttonLink: "/products",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2070&auto=format&fit=crop",
+    bgColor: "bg-bloom-navy",
+  },
+  {
+    id: 2,
+    title: "طلباتك السابقة",
+    subtitle: "تتبع شحناتك واطلع على حالة الطلبات.",
+    buttonText: "طلباتي",
+    buttonLink: "/dashboard",
+    image: "https://images.unsplash.com/photo-1533612608997-212b06408bb9?q=80&w=2070&auto=format&fit=crop",
+    bgColor: "bg-bloom-teal",
+  },
+  {
+    id: 3,
+    title: "مكتبتك الخاصة",
+    subtitle: "استعرض أحدث الفئات المضافة لمكتبتنا.",
+    buttonText: "تصفح الفئات",
+    buttonLink: "/categories",
+    image: "https://images.unsplash.com/photo-1474367658825-e5858839e99d?q=80&w=2070&auto=format&fit=crop",
+    bgColor: "bg-bloom-coral",
+  },
+];
+
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slides] = useState<Slide[]>(defaultSlides);
+  const [slides, setSlides] = useState<Slide[]>(guestSlides);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  };
+  useEffect(() => {
+    const token = Cookies.get("access_token");
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
+    if (token) {
+      setSlides(loggedInSlides);
+    } else {
+      setSlides(guestSlides);
+    }
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      nextSlide();
+      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
     }, 5000);
 
     return () => clearInterval(interval);
@@ -78,7 +111,6 @@ const HeroSlider = () => {
               style={{ backgroundImage: `url(${slide.image})` }}
             ></div>
             <div className="absolute inset-0 bg-gradient-to-l from-black/60 to-transparent"></div>
-            
             <div className="container h-full mx-auto flex items-center">
               <div className="max-w-lg text-white z-10 p-6">
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-slide-in">
@@ -99,14 +131,22 @@ const HeroSlider = () => {
 
       {/* Navigation Buttons */}
       <button
-        onClick={prevSlide}
+        onClick={() =>
+          setCurrentSlide((prev) =>
+            prev === 0 ? slides.length - 1 : prev - 1
+          )
+        }
         className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-all z-20"
         aria-label="Previous slide"
       >
         <ChevronLeft className="text-white" size={24} />
       </button>
       <button
-        onClick={nextSlide}
+        onClick={() =>
+          setCurrentSlide((prev) =>
+            prev === slides.length - 1 ? 0 : prev + 1
+          )
+        }
         className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-all z-20"
         aria-label="Next slide"
       >

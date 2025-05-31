@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import Products from "./pages/Products";
 import Categories from "./pages/Categories";
 import CategoryProducts from "./pages/CategoryProducts";
+import OrderDetails from "./pages/OrderDetails";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/orders/:id" element={<OrderDetails />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

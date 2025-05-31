@@ -90,8 +90,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch cart items on mount
   useEffect(() => {
+  const token = localStorage.getItem("token"); // Or however you manage auth
+  if (token) {
     fetchCartItems();
-  }, []);
+  } else {
+    setLoading(false); // prevent loading state hang if not logged in
+  }
+}, []);
 
   const fetchCartItems = async () => {
     try {

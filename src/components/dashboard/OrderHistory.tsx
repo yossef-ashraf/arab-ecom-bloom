@@ -39,7 +39,7 @@ interface OrderItem {
 interface Order {
   id: number;
   total_amount: number;
-  payment_method: 'credit_card' | 'cash' | 'vodafone_cash' | 'orange_cash' | 'etisalat_cash';
+  payment_method: 'credit_card' | 'cash' | 'vodafone_cash' | 'orange_cash' | 'etisalat_cash' | "completed";
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   created_at: string;
   items: OrderItem[];
@@ -112,6 +112,8 @@ const OrderHistory = () => {
         return 'تم التسليم';
       case 'cancelled':
         return 'ملغي';
+      case 'completed':
+        return 'مكتمل';
       default:
         return status;
     }
