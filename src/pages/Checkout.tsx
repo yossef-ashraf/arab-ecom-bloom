@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
@@ -15,6 +14,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/components/ui/use-toast";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 interface CheckoutFormData {
   address: string;
@@ -28,6 +29,8 @@ const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [discount, setDiscount] = useState(0);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   const form = useForm<CheckoutFormData>({
     defaultValues: {
@@ -50,18 +53,60 @@ const Checkout = () => {
 
   const subtotal = getCartTotal();
   const shipping = subtotal > 200 ? 0 : 20;
-  const total = subtotal + shipping;
+  const total = subtotal + shipping - discount;
+
+  const validateCoupon = async (code: string) => {
+    if (!code) return;
+    
+    setIsValidatingCoupon(true);
+    try {
+      const token = Cookies.get("access_token");
+      const response = await axios.post(
+        "http://localhost:8000/api/coupons/validate",
+        { code },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const { discount: couponDiscount } = response.data.data;
+      setDiscount(couponDiscount);
+      
+      toast({
+        title: "تم تطبيق الكوبون بنجاح",
+        description: `تم خصم ${couponDiscount} ج.م من إجمالي الطلب`,
+      });
+    } catch (error) {
+      setDiscount(0);
+      toast({
+        title: "كود خصم غير صالح",
+        description: "يرجى التحقق من الكود والمحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsLoading(true);
     
     try {
-      // Here you will implement the actual API call
-      console.log("Order data:", {
+      const token = Cookies.get("access_token");
+      const orderData = {
         ...data,
         area_id: parseInt(data.area_id),
         items: cartItems,
         total_amount: total,
+        coupon_code: data.coupon_code || null,
+      };
+
+      await axios.post("http://localhost:8000/api/orders", orderData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast({
@@ -69,11 +114,7 @@ const Checkout = () => {
         description: "سيتم التواصل معك قريباً لتأكيد الطلب",
       });
 
-      // Clear cart after successful order
       clearCart();
-      
-      // Redirect to success page or dashboard
-      // navigate('/order-success');
       
     } catch (error) {
       toast({
@@ -226,9 +267,19 @@ const Checkout = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>كود الخصم (اختياري)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="أدخل كود الخصم" {...field} />
-                        </FormControl>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input placeholder="أدخل كود الخصم" {...field} />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => validateCoupon(field.value)}
+                            disabled={isValidatingCoupon || !field.value}
+                          >
+                            {isValidatingCoupon ? "جاري التحقق..." : "تطبيق"}
+                          </Button>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -253,12 +304,8 @@ const Checkout = () => {
                     )}
                   />
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-900 hover:bg-blue-800 text-lg py-6"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "جاري إرسال الطلب..." : "تأكيد الطلب"}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "جاري إرسال الطلب..." : "إتمام الطلب"}
                   </Button>
                 </form>
               </Form>
@@ -268,50 +315,51 @@ const Checkout = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold text-blue-900 mb-6">ملخص الطلب</h2>
               
-              <div className="space-y-4 mb-6">
-                {cartItems.map((item) => {
-                  const itemPrice = item.discount ? item.discountPrice : item.price;
-                  return (
-                    <div key={item.id} className="flex items-center gap-4">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-16 h-16 rounded-md object-cover"
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-medium">{item.title}</h3>
-                        <p className="text-sm text-gray-500">الكمية: {item.quantity}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{itemPrice * item.quantity} جنيه</p>
-                      </div>
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-4">
+                    <img
+                      src={item.product.image_url || "/placeholder.png"}
+                      alt={item.product.slug}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium">{item.product.slug}</p>
+                      <p className="text-sm text-gray-500">
+                        {item.quantity} × {item.price} ج.م
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
+                    <p className="font-medium">{item.total_amount} ج.م</p>
+                  </div>
+                ))}
 
-              <Separator className="my-4" />
-
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>المجموع الفرعي</span>
-                  <span>{subtotal} جنيه</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>الشحن</span>
-                  <span>{shipping === 0 ? "مجاني" : `${shipping} جنيه`}</span>
-                </div>
                 <Separator />
-                <div className="flex justify-between text-lg font-bold">
-                  <span>الإجمالي</span>
-                  <span>{total} جنيه</span>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>المجموع الفرعي</span>
+                    <span>{subtotal} ج.م</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>تكلفة الشحن</span>
+                    <span>{shipping} ج.م</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>الخصم</span>
+                      <span>-{discount} ج.م</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                    <span>الإجمالي</span>
+                    <span>{total} ج.م</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </main>
-      
       <Footer />
     </div>
   );
