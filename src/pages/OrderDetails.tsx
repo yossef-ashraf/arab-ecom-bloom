@@ -10,6 +10,40 @@ const OrderDetails = () => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+const getPaymentMethodText = (method: Order['payment_method']) => {
+    switch (method) {
+      case 'credit_card':
+        return 'بطاقة ائتمان';
+      case 'cash':
+        return 'الدفع عند الاستلام';
+      case 'vodafone_cash':
+        return 'فودافون كاش';
+      case 'orange_cash':
+        return 'اورنج كاش';
+      case 'etisalat_cash':
+        return 'اتصالات كاش';
+      default:
+        return method;
+    }
+  };
+  const getStatusText = (status: Order['status']) => {
+    switch (status) {
+      case 'pending':
+        return 'قيد الانتظار';
+      case 'processing':
+        return 'قيد المعالجة';
+      case 'shipped':
+        return 'تم الشحن';
+      case 'delivered':
+        return 'تم التسليم';
+      case 'cancelled':
+        return 'ملغي';
+      case 'completed':
+        return 'مكتمل';
+      default:
+        return status;
+    }
+  };
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -48,9 +82,9 @@ const OrderDetails = () => {
           <h2 className="text-xl font-bold text-gray-700 mb-2">معلومات الطلب</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
             <p><span className="font-semibold">العنوان:</span> {order.address}</p>
-            <p><span className="font-semibold">طريقة الدفع:</span> {order.payment_method}</p>
+            <p><span className="font-semibold">طريقة الدفع:</span> {getPaymentMethodText(order.payment_method)}</p>
             <p><span className="font-semibold">المبلغ الإجمالي:</span> {order.total_amount} ج.م</p>
-            <p><span className="font-semibold">الحالة:</span> {order.status}</p>
+            <p><span className="font-semibold">الحالة:</span> {getStatusText(order.status)}</p>
             <p><span className="font-semibold">رقم التتبع:</span> {order.tracking_number}</p>
             <p><span className="font-semibold">ملاحظات:</span> {order.notes || "لا توجد"}</p>
             <p><span className="font-semibold">تاريخ الإنشاء:</span> {new Date(order.created_at).toLocaleDateString()}</p>
