@@ -3,10 +3,15 @@ import { useEffect, useState } from 'react';
 import { getProducts } from '../services/api';
 import BookCard from '../components/product/BookCard';
 import { Book } from '../types';
+import { useLocation } from "react-router-dom";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const Products = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   useEffect(() => {
     getProducts()
@@ -35,10 +40,14 @@ const Products = () => {
   if (loading) return <p className="p-4">Loading...</p>;
 
   return (
+    <div className="min-h-screen flex flex-col">
+      {!isHomePage && <Navbar />}
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4">
       {books.map((book) => (
         <BookCard key={book.id} book={book} />
       ))}
+    </div>
+          {!isHomePage && <Footer />}
     </div>
   );
 };
