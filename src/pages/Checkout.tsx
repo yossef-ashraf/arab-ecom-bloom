@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { ArrowLeft, CreditCard } from "lucide-react";
@@ -27,6 +27,12 @@ interface CheckoutFormData {
   notes?: string;
 }
 
+interface Area {
+  id: number;
+  name: string;
+  shipping_value: number;
+}
+
 const Checkout = () => {
   const { cartItems, getCartTotal, clearCart,
     applyCoupon,
@@ -37,11 +43,12 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState("");
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [ setDiscount] = useState(0);
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [selectedArea, setSelectedArea] = useState<Area | null>(null);
+  const [isLoadingAreas, setIsLoadingAreas] = useState(true);
   
   const subtotal = roundNumber(getCartTotal());
-  const shipping = subtotal > 200 ? 0 : 20;
+  const shipping = selectedArea ? selectedArea.shipping_value : 0;
   const total = roundNumber(coupon ? finalAmount + shipping : subtotal + shipping);
   
   const form = useForm<CheckoutFormData>({
@@ -54,17 +61,26 @@ const Checkout = () => {
     },
   });
 
-  // Mock areas data
-  const areas = [
-    { id: "1", name: "المعادي", governorate: "القاهرة" },
-    { id: "2", name: "مدينة نصر", governorate: "القاهرة" },
-    { id: "3", name: "الزمالك", governorate: "القاهرة" },
-    { id: "4", name: "المهندسين", governorate: "الجيزة" },
-    { id: "5", name: "الدقي", governorate: "الجيزة" },
-  ];
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/areas");
+        setAreas(response.data.data);
+      } catch (error) {
+        toast({
+          title: "خطأ في جلب المناطق",
+          description: "يرجى المحاولة مرة أخرى",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingAreas(false);
+      }
+    };
 
+    fetchAreas();
+  }, []);
 
-    const handleApplyCoupon = async () => {
+  const handleApplyCoupon = async () => {
     if (couponCode.trim()) {
       await applyCoupon(couponCode);
       setCouponCode("");
@@ -73,7 +89,7 @@ const Checkout = () => {
   const validateCoupon = async (code: string) => {
     if (!code) return;
     
-    setIsValidatingCoupon(true);
+    setIsLoading(true);
     try {
       const token = Cookies.get("access_token");
       const response = await axios.post(
@@ -101,7 +117,7 @@ const Checkout = () => {
         variant: "destructive",
       });
     } finally {
-      setIsValidatingCoupon(false);
+      setIsLoading(false);
     }
   };
 
@@ -110,36 +126,55 @@ const Checkout = () => {
     
     try {
       const token = Cookies.get("access_token");
+      if (!token) {
+        throw new Error("يرجى تسجيل الدخول أولاً");
+      }
+
       const orderData = {
         ...data,
         area_id: parseInt(data.area_id),
         items: cartItems,
         total_amount: total,
-        coupon_code: data.coupon_code || null,
+        coupon_code: coupon?.code || null,
       };
 
-      await axios.post("http://localhost:8000/api/orders", orderData, {
+      const response = await axios.post("http://localhost:8000/api/orders", orderData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      toast({
-        title: "تم إرسال الطلب بنجاح",
-        description: "سيتم التواصل معك قريباً لتأكيد الطلب",
-      });
-
-      clearCart();
-      
-    } catch (error) {
+      if (response.data.status === "Success") {
+        const cartCleared = await clearCart();
+        if (cartCleared) {
+          toast({
+            title: "تم إرسال الطلب بنجاح",
+            description: "سيتم التواصل معك قريباً لتأكيد الطلب",
+          });
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 1000);
+        } else {
+          throw new Error("فشل في تفريغ السلة");
+        }
+      } else {
+        throw new Error(response.data.message || "فشل في إرسال الطلب");
+      }
+    } catch (error: any) {
+      console.error('Order submission error:', error);
       toast({
         title: "خطأ في إرسال الطلب",
-        description: "يرجى المحاولة مرة أخرى",
+        description: error.message || "يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAreaChange = (areaId: string) => {
+    const area = areas.find(a => a.id === parseInt(areaId));
+    setSelectedArea(area || null);
   };
 
   if (cartItems.length === 0) {
@@ -212,18 +247,30 @@ const Checkout = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>المنطقة</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            handleAreaChange(value);
+                          }} 
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="اختر المنطقة" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {areas.map((area) => (
-                              <SelectItem key={area.id} value={area.id}>
-                                {area.name} - {area.governorate}
+                            {isLoadingAreas ? (
+                              <SelectItem value="loading" disabled>
+                                جاري التحميل...
                               </SelectItem>
-                            ))}
+                            ) : (
+                              areas.map((area) => (
+                                <SelectItem key={area.id} value={area.id.toString()}>
+                                  {area.name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -355,7 +402,7 @@ const Checkout = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">الشحن</span>
                     <span className="font-medium">
-                      {shipping === 0 ? "مجاني" : `${roundNumber(shipping)} جنيه`}
+                      {roundNumber(shipping)} جنيه
                     </span>
                   </div>
                   
@@ -365,12 +412,6 @@ const Checkout = () => {
                     <span className="text-blue-900">الإجمالي</span>
                     <span className="text-blue-900">{roundNumber(total)} جنيه</span>
                   </div>
-                  
-                  {shipping === 0 && (
-                    <div className="text-center text-green-600 text-sm py-2 bg-green-50 rounded-md">
-                      أنت مؤهل للشحن المجاني!
-                    </div>
-                  )}
                 </div>
                 
               </div>

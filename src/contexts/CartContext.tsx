@@ -88,22 +88,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [total, setTotal] = useState(0);
   const { toast } = useToast();
 
-  // Fetch cart items on mount
+  // Fetch cart items on mount and when token changes
   useEffect(() => {
-  const token = localStorage.getItem("token"); // Or however you manage auth
-  if (token) {
-    fetchCartItems();
-  } else {
-    setLoading(false); // prevent loading state hang if not logged in
-  }
-}, []);
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchCartItems();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const fetchCartItems = async () => {
     try {
       const response = await api.cart.get();
 
       if (response.status === "Success") {
-        // Sort items to show variations first
         const sortedItems = response.data.sort((a: CartItemResponse, b: CartItemResponse) => {
           if (a.variation && !b.variation) return -1;
           if (!a.variation && b.variation) return 1;
@@ -112,7 +111,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
         setCartItems(sortedItems);
         
-        // Calculate totals
         const newSubtotal = sortedItems.reduce((sum, item) => {
           const price = item.variation ? item.variation.sale_price : item.product.sale_price;
           return sum + (price * item.quantity);
@@ -214,6 +212,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.cart.clear();
       
       if (response.status === "Success") {
+        // Only clear cart state after successful API call
         setCartItems([]);
         setCoupon(null);
         setDiscount(0);
@@ -224,7 +223,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           title: "تم تفريغ السلة",
           description: "تم تفريغ سلة التسوق بنجاح",
         });
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Error clearing cart:', error);
       toast({
@@ -232,6 +233,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         description: "حدث خطأ أثناء تفريغ السلة",
         variant: "destructive",
       });
+      return false;
     }
   };
 

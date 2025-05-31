@@ -21,7 +21,7 @@ const Cart = () => {
   
   const isEmpty = cartItems.length === 0;
   const subtotal = roundNumber(getCartTotal());
-  const shipping = subtotal > 200 ? 0 : 20;
+  const shipping = 20;
   const total = roundNumber( subtotal + shipping);
   
   const handleQuantityChange = (productId: string, newQuantity: number) => {
@@ -192,12 +192,6 @@ const Cart = () => {
                     <span className="text-blue-900">الإجمالي</span>
                     <span className="text-blue-900">{roundNumber(total)} جنيه</span>
                   </div>
-                  
-                  {shipping === 0 && (
-                    <div className="text-center text-green-600 text-sm py-2 bg-green-50 rounded-md">
-                      أنت مؤهل للشحن المجاني!
-                    </div>
-                  )}
                 </div>
                 
                 <Button

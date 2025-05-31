@@ -18,7 +18,7 @@ const Index = () => {
       <main className="flex-grow">
         <HeroSlider />
         {/* <FeaturedCategories /> */}
-        {/* <Categories /> */}
+        <Categories />
         <Products />
         {/* <PromoBanner /> */}
         <Features />
