@@ -1,5 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -34,6 +36,9 @@ const OrderDetails = () => {
   if (!order) return <div className="p-6 text-center text-red-600">لم يتم العثور على الطلب.</div>;
 
   return (
+    
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
     <div className="min-h-screen py-10 px-4 md:px-10 bg-gray-50">
       <div className="max-w-4xl mx-auto space-y-8" dir="rtl">
         <h1 className="text-3xl font-extrabold text-blue-800 border-b pb-4">تفاصيل الطلب رقم {order.id}</h1>
@@ -84,6 +89,8 @@ const OrderDetails = () => {
         </div>
       </div>
     </div>
+          <Footer />
+        </div>
   );
 };
 
