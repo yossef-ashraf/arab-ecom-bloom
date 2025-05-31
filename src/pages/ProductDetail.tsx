@@ -86,7 +86,7 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (product) {
-      const bookData: Book = {
+      const bookData: Book & { variation_id?: number | null } = {
         id: product.id.toString(),
         title: product.slug,
         author: product.author ?? "مؤلف غير معروف",
@@ -110,6 +110,7 @@ const ProductDetail = () => {
         inStock: selectedVariation 
           ? selectedVariation.stock_status === "in_stock"
           : product.stock_status === "in_stock",
+        variation_id: selectedVariation?.id || null
       };
       addToCart(bookData, quantity);
       setQuantity(1);
