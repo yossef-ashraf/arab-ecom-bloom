@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { ArrowLeft, CreditCard } from "lucide-react";
+import { Trash2, Plus, Minus,  X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 import axios from "axios";
 import Cookies from "js-cookie";
 
+const roundNumber = (num: number) => Math.round(num * 100) / 100;
 interface CheckoutFormData {
   address: string;
   area_id: string;
@@ -26,12 +28,22 @@ interface CheckoutFormData {
 }
 
 const Checkout = () => {
-  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { cartItems, getCartTotal, clearCart,
+    applyCoupon,
+    removeCoupon,
+    coupon,
+    discount,
+    finalAmount } = useCart();
+  const [couponCode, setCouponCode] = useState("");
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [discount, setDiscount] = useState(0);
+  const [ setDiscount] = useState(0);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-
+  
+  const subtotal = roundNumber(getCartTotal());
+  const shipping = subtotal > 200 ? 0 : 20;
+  const total = roundNumber(coupon ? finalAmount + shipping : subtotal + shipping);
+  
   const form = useForm<CheckoutFormData>({
     defaultValues: {
       address: "",
@@ -51,10 +63,13 @@ const Checkout = () => {
     { id: "5", name: "الدقي", governorate: "الجيزة" },
   ];
 
-  const subtotal = getCartTotal();
-  const shipping = subtotal > 200 ? 0 : 20;
-  const total = subtotal + shipping - discount;
 
+    const handleApplyCoupon = async () => {
+    if (couponCode.trim()) {
+      await applyCoupon(couponCode);
+      setCouponCode("");
+    }
+  };
   const validateCoupon = async (code: string) => {
     if (!code) return;
     
@@ -260,31 +275,6 @@ const Checkout = () => {
                     )}
                   />
 
-                  {/* Coupon Code */}
-                  <FormField
-                    control={form.control}
-                    name="coupon_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>كود الخصم (اختياري)</FormLabel>
-                        <div className="flex gap-2">
-                          <FormControl>
-                            <Input placeholder="أدخل كود الخصم" {...field} />
-                          </FormControl>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => validateCoupon(field.value)}
-                            disabled={isValidatingCoupon || !field.value}
-                          >
-                            {isValidatingCoupon ? "جاري التحقق..." : "تطبيق"}
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   {/* Notes */}
                   <FormField
                     control={form.control}
@@ -313,50 +303,77 @@ const Checkout = () => {
 
             {/* Order Summary */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-blue-900 mb-6">ملخص الطلب</h2>
-              
-              <div className="space-y-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4">
-                    <img
-                      src={item.product.image_url || "/placeholder.png"}
-                      alt={item.product.slug}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <p className="font-medium">{item.product.slug}</p>
-                      <p className="text-sm text-gray-500">
-                        {item.quantity} × {item.price} ج.م
-                      </p>
+                <h2 className="text-xl font-bold text-blue-900 mb-6">ملخص الطلب</h2>
+                
+                <div className="mb-6">
+                  {coupon ? (
+                    <div className="bg-green-50 p-4 rounded-md">
+                      <div className="flex justify-between items-center mb-2">
+                        <div>
+                          <p className="font-medium text-green-800">{coupon.name}</p>
+                          <p className="text-sm text-green-600">الخصم: {roundNumber(discount)} جنيه</p>
+                        </div>
+                        <button
+                          onClick={removeCoupon}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
                     </div>
-                    <p className="font-medium">{item.total_amount} ج.م</p>
-                  </div>
-                ))}
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>المجموع الفرعي</span>
-                    <span>{subtotal} ج.م</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>تكلفة الشحن</span>
-                    <span>{shipping} ج.م</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>الخصم</span>
-                      <span>-{discount} ج.م</span>
+                  ) : (
+                    <div className="flex mb-3">
+                      <input
+                        type="text"
+                        placeholder="كود الخصم"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        className="flex-1 border border-gray-300 rounded-r-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+                      />
+                      <Button
+                        className="bg-amber-600 text-white rounded-l-md rounded-r-none hover:bg-amber-700"
+                        disabled={!couponCode}
+                        onClick={handleApplyCoupon}
+                      >
+                        تطبيق
+                      </Button>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                    <span>الإجمالي</span>
-                    <span>{total} ج.م</span>
-                  </div>
                 </div>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">المجموع الفرعي</span>
+                    <span className="font-medium">{roundNumber(subtotal)} جنيه</span>
+                  </div>
+                  {coupon && (
+                    <div className="flex justify-between text-green-600">
+                      <span>الخصم</span>
+                      <span className="font-medium">-{roundNumber(discount)} جنيه</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">الشحن</span>
+                    <span className="font-medium">
+                      {shipping === 0 ? "مجاني" : `${roundNumber(shipping)} جنيه`}
+                    </span>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between text-lg font-bold">
+                    <span className="text-blue-900">الإجمالي</span>
+                    <span className="text-blue-900">{roundNumber(total)} جنيه</span>
+                  </div>
+                  
+                  {shipping === 0 && (
+                    <div className="text-center text-green-600 text-sm py-2 bg-green-50 rounded-md">
+                      أنت مؤهل للشحن المجاني!
+                    </div>
+                  )}
+                </div>
+                
               </div>
-            </div>
           </div>
         </div>
       </main>
